@@ -44,7 +44,7 @@ const Auth = () => {
           .from("profiles")
           .select("onboarding_completed")
           .eq("id", data.user.id)
-          .single();
+          .maybeSingle();
 
         if (profile?.onboarding_completed) {
           toast.success("¡Bienvenida de vuelta!");

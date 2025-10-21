@@ -45,12 +45,14 @@ const OnboardingForm = () => {
             navigate("/dashboard", { replace: true });
             return;
           }
+          // Si no completó onboarding, permitir continuar
         } else if (!pendingReg) {
-          // No hay usuario ni registro pendiente
+          // No hay usuario ni registro pendiente - redirigir a auth
           toast.error("Debes registrarte primero");
           navigate("/auth", { replace: true });
           return;
         }
+        // Si hay pendingReg pero no hay usuario, permitir continuar (flujo normal de registro)
       } catch (error: any) {
         console.error("Error checking onboarding status:", error);
         const errorMessage = error?.message || "Error desconocido al verificar tu registro";

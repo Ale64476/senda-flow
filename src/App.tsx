@@ -73,33 +73,43 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
-  const { loading } = useAuth();
-  const [checkingRegistration, setCheckingRegistration] = useState(true);
+  const { user, loading } = useAuth();
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   useEffect(() => {
-    const checkPendingRegistration = () => {
+    const checkAccess = async () => {
       const pendingReg = sessionStorage.getItem('pendingRegistration');
-      if (!pendingReg) {
-        // No hay registro pendiente, verificar si hay usuario
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (!user) {
-            // No hay usuario ni registro pendiente
-            setCheckingRegistration(false);
-          } else {
-            setCheckingRegistration(false);
-          }
-        });
-      } else {
-        setCheckingRegistration(false);
+      
+      // Permitir acceso si hay registro pendiente (usuario nuevo)
+      if (pendingReg) {
+        setCheckingAccess(false);
+        return;
       }
+      
+      // Si no hay registro pendiente, verificar si es usuario autenticado sin perfil completo
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, onboarding_completed")
+          .eq("id", user.id)
+          .maybeSingle();
+          
+        if (profile && !profile.onboarding_completed) {
+          // Usuario autenticado sin onboarding completo
+          setCheckingAccess(false);
+          return;
+        }
+      }
+      
+      setCheckingAccess(false);
     };
 
     if (!loading) {
-      checkPendingRegistration();
+      checkAccess();
     }
-  }, [loading]);
+  }, [user, loading]);
 
-  if (loading || checkingRegistration) {
+  if (loading || checkingAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Cargando...</p>
