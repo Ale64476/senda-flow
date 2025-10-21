@@ -147,7 +147,7 @@ const Workouts = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-32 pb-20 px-4">
+      <div className="pt-24 pb-28 px-4">
         <div className="container mx-auto space-y-8">
           <div className="flex justify-between items-center">
             <div>

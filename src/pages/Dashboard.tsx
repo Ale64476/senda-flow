@@ -71,7 +71,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-32 pb-20 px-4">
+        <div className="pt-24 pb-28 px-4">
           <div className="container mx-auto flex items-center justify-center">
             <p className="text-muted-foreground">Cargando...</p>
           </div>
@@ -90,7 +90,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-32 pb-20 px-4">
+      <div className="pt-24 pb-28 px-4">
         <div className="container mx-auto space-y-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">
