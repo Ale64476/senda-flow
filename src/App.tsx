@@ -21,31 +21,8 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("onboarding_completed")
-          .eq("id", user.id)
-          .single();
-
-        if (!error && data) {
-          setOnboardingCompleted(data.onboarding_completed || false);
-        }
-      }
-      setCheckingOnboarding(false);
-    };
-
-    if (!loading) {
-      checkOnboarding();
-    }
-  }, [user, loading]);
-
-  if (loading || checkingOnboarding) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
@@ -55,10 +32,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
-  }
-
-  if (!onboardingCompleted) {
-    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
@@ -84,31 +57,8 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("onboarding_completed")
-          .eq("id", user.id)
-          .single();
-
-        if (!error && data) {
-          setOnboardingCompleted(data.onboarding_completed || false);
-        }
-      }
-      setCheckingOnboarding(false);
-    };
-
-    if (!loading) {
-      checkOnboarding();
-    }
-  }, [user, loading]);
-
-  if (loading || (user && checkingOnboarding)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
@@ -116,11 +66,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (user && !onboardingCompleted) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  if (user && onboardingCompleted) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -130,7 +76,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route
         path="/auth"
         element={
