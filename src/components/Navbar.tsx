@@ -20,7 +20,7 @@ export const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b shadow-card">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t shadow-card">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden flex justify-around mt-3 pt-3 border-t">
+        <div className="md:hidden flex justify-around mb-3 pb-3 border-b order-first">
           {navItems.map((item) => (
             <Link key={item.path} to={item.path}>
               <Button
