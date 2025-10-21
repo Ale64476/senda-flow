@@ -386,6 +386,9 @@ export type Database = {
         | "mantener_peso"
         | "tonificar"
         | "mejorar_resistencia"
+        | "bajar_grasa"
+        | "ganar_masa"
+        | "rendimiento"
       fitness_level: "principiante" | "intermedio" | "avanzado"
       meal_type: "desayuno" | "colacion_am" | "comida" | "colacion_pm" | "cena"
       workout_location: "casa" | "gimnasio" | "exterior"
@@ -523,6 +526,9 @@ export const Constants = {
         "mantener_peso",
         "tonificar",
         "mejorar_resistencia",
+        "bajar_grasa",
+        "ganar_masa",
+        "rendimiento",
       ],
       fitness_level: ["principiante", "intermedio", "avanzado"],
       meal_type: ["desayuno", "colacion_am", "comida", "colacion_pm", "cena"],
