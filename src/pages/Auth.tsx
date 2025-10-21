@@ -72,7 +72,7 @@ const Auth = () => {
     try {
       const validation = authSchema.parse({ email, password, fullName });
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: validation.email,
         password: validation.password,
         options: {
@@ -85,8 +85,11 @@ const Auth = () => {
 
       if (error) throw error;
       
-      toast.success("¡Cuenta creada! Completa tu perfil");
-      navigate("/onboarding");
+      if (data.user) {
+        toast.success("¡Cuenta creada! Ahora completa tu perfil");
+        // Navegar al formulario de onboarding solo después del registro exitoso
+        navigate("/onboarding");
+      }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);

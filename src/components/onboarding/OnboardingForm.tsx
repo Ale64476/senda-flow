@@ -28,20 +28,25 @@ const OnboardingForm = () => {
     const checkOnboardingStatus = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("onboarding_completed")
-            .eq("id", user.id)
-            .single();
+        if (!user) {
+          // Si no hay usuario, redirigir a auth
+          navigate("/auth", { replace: true });
+          return;
+        }
+        
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", user.id)
+          .single();
 
-          if (profile?.onboarding_completed) {
-            navigate("/dashboard", { replace: true });
-            return;
-          }
+        if (profile?.onboarding_completed) {
+          navigate("/dashboard", { replace: true });
+          return;
         }
       } catch (error) {
         console.error("Error checking onboarding status:", error);
+        navigate("/auth", { replace: true });
       } finally {
         setCheckingProfile(false);
       }
