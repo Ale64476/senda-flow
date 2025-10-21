@@ -20,19 +20,76 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar y limpiar sesión inicial
+    const checkAndCleanSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        if (session) {
+          // Verificar que el usuario existe en la base de datos
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !userData.user) {
+            // Usuario no existe o token inválido - limpiar sesión
+            console.warn("Invalid session detected, cleaning up...");
+            await supabase.auth.signOut();
+            setSession(null);
+            setUser(null);
+            toast.error("Sesión inválida. Por favor, inicia sesión nuevamente.");
+          } else {
+            setSession(session);
+            setUser(userData.user);
+          }
+        }
+      } catch (error) {
+        console.error("Error in session check:", error);
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAndCleanSession();
+
+    // Escuchar cambios en el estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session) {
+            // Verificar que el usuario existe
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            
+            if (userError || !userData.user) {
+              await supabase.auth.signOut();
+              setSession(null);
+              setUser(null);
+              toast.error("Sesión inválida. Por favor, inicia sesión nuevamente.");
+            } else {
+              setSession(session);
+              setUser(userData.user);
+            }
+          }
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
         setLoading(false);
       }
     );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
 
     return () => subscription.unsubscribe();
   }, []);
