@@ -178,8 +178,12 @@ const OnboardingForm = () => {
       const pendingRegString = sessionStorage.getItem('pendingRegistration');
       
       if (!pendingRegString) {
-        toast.error("Error: No hay registro pendiente. Por favor, vuelve a registrarte.");
-        navigate("/auth");
+        toast.error("Error: No hay registro pendiente. Redirigiendo a la página de registro...", {
+          duration: 3000,
+        });
+        setTimeout(() => {
+          navigate("/auth", { replace: true });
+        }, 1500);
         return;
       }
 
@@ -270,8 +274,8 @@ const OnboardingForm = () => {
       // Determinar el mensaje de error específico
       let errorMessage = "Hubo un error al completar tu registro";
       
-      if (error?.message?.includes("already registered")) {
-        errorMessage = "Este correo ya está registrado. Intenta iniciar sesión o usa otro correo";
+      if (error?.message?.includes("already registered") || error?.message?.includes("User already registered")) {
+        errorMessage = "Este correo ya está registrado. Serás redirigida a la página de inicio de sesión";
       } else if (error?.message?.includes("Invalid email")) {
         errorMessage = "El formato del correo electrónico no es válido";
       } else if (error?.message?.includes("Password")) {
@@ -280,18 +284,23 @@ const OnboardingForm = () => {
         errorMessage = "Este usuario ya existe en el sistema";
       } else if (error?.message?.includes("profiles")) {
         errorMessage = "Error al crear tu perfil. Verifica que todos los datos sean correctos";
+      } else if (error?.message?.includes("permission denied") || error?.message?.includes("RLS")) {
+        errorMessage = "Error de permisos al crear tu cuenta. Por favor, intenta nuevamente";
       } else if (error?.message) {
         errorMessage = error.message;
       }
       
-      toast.error(`❌ ${errorMessage}`);
+      toast.error(`❌ ${errorMessage}. Redirigiendo a la página de registro...`, {
+        duration: 4000,
+      });
       
-      // Limpiar datos temporales y volver al inicio
+      // Limpiar datos temporales
       sessionStorage.removeItem('pendingRegistration');
       
+      // Redirigir a la página de autenticación
       setTimeout(() => {
-        navigate("/auth");
-      }, 3000);
+        navigate("/auth", { replace: true });
+      }, 2000);
     } finally {
       setLoading(false);
     }
