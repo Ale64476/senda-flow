@@ -17,10 +17,38 @@ const OnboardingForm = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
   const [formData, setFormData] = useState<any>({});
 
   const totalSteps = 7;
   const progress = (currentStep / totalSteps) * 100;
+
+  // Verificar si el usuario ya completó el onboarding
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("id", user.id)
+            .single();
+
+          if (profile?.onboarding_completed) {
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [navigate]);
 
   // Prevenir cierre de ventana/pestaña sin completar
   useEffect(() => {
@@ -35,6 +63,14 @@ const OnboardingForm = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
+
+  if (checkingProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando formulario...</p>
+      </div>
+    );
+  }
 
   const updateFormData = (data: any) => {
     setFormData((prev: any) => ({ ...prev, ...data }));
