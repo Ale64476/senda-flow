@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -21,6 +21,20 @@ const OnboardingForm = () => {
 
   const totalSteps = 7;
   const progress = (currentStep / totalSteps) * 100;
+
+  // Prevenir cierre de ventana/pestaña sin completar
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   const updateFormData = (data: any) => {
     setFormData((prev: any) => ({ ...prev, ...data }));
@@ -70,7 +84,11 @@ const OnboardingForm = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) {
+        toast.error("Sesión expirada. Por favor inicia sesión nuevamente.");
+        navigate("/auth");
+        return;
+      }
 
       const { error } = await supabase
         .from("profiles")
@@ -112,12 +130,16 @@ const OnboardingForm = () => {
         })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error al guardar perfil:", error);
+        throw new Error("No se pudo guardar tu perfil. Por favor intenta nuevamente.");
+      }
 
       toast.success("¡Perfil completado! Bienvenida a SendaFit");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || "Error al guardar el perfil");
+      toast.error(error.message || "Error al guardar el perfil. Por favor intenta nuevamente.");
+      console.error("Error en handleSubmit:", error);
     } finally {
       setLoading(false);
     }

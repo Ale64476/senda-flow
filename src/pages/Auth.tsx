@@ -31,15 +31,29 @@ const Auth = () => {
     try {
       const validation = authSchema.parse({ email, password });
       
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: validation.email,
         password: validation.password,
       });
 
       if (error) throw error;
       
-      toast.success("¡Bienvenida de vuelta!");
-      navigate("/dashboard");
+      // Verificar si completó el onboarding
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profile?.onboarding_completed) {
+          toast.success("¡Bienvenida de vuelta!");
+          navigate("/dashboard");
+        } else {
+          toast.info("Por favor completa tu perfil");
+          navigate("/onboarding");
+        }
+      }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);

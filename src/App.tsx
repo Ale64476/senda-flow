@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { supabase } from "./integrations/supabase/client";
 import SplashScreen from "./components/SplashScreen";
 import OnboardingForm from "./components/onboarding/OnboardingForm";
 import Auth from "./pages/Auth";
@@ -19,6 +20,51 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && data) {
+          setOnboardingCompleted(data.onboarding_completed || false);
+        }
+      }
+      setCheckingOnboarding(false);
+    };
+
+    if (!loading) {
+      checkOnboarding();
+    }
+  }, [user, loading]);
+
+  if (loading || checkingOnboarding) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -69,9 +115,9 @@ const AppRoutes = () => {
       <Route
         path="/onboarding"
         element={
-          <ProtectedRoute>
+          <OnboardingRoute>
             <OnboardingForm />
-          </ProtectedRoute>
+          </OnboardingRoute>
         }
       />
       <Route
