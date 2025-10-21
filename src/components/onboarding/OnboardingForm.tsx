@@ -51,9 +51,10 @@ const OnboardingForm = () => {
           navigate("/auth", { replace: true });
           return;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error checking onboarding status:", error);
-        toast.error("Error al verificar tu registro. Por favor vuelve a intentarlo.");
+        const errorMessage = error?.message || "Error desconocido al verificar tu registro";
+        toast.error(`Error: ${errorMessage}. Por favor vuelve a intentarlo.`);
         navigate("/auth", { replace: true });
       } finally {
         setCheckingProfile(false);
@@ -222,7 +223,25 @@ const OnboardingForm = () => {
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error en handleSubmit:", error);
-      toast.error("❌ Hubo un error al completar tu registro. Por favor, intenta registrarte nuevamente.");
+      
+      // Determinar el mensaje de error específico
+      let errorMessage = "Hubo un error al completar tu registro";
+      
+      if (error?.message?.includes("already registered")) {
+        errorMessage = "Este correo ya está registrado. Intenta iniciar sesión o usa otro correo";
+      } else if (error?.message?.includes("Invalid email")) {
+        errorMessage = "El formato del correo electrónico no es válido";
+      } else if (error?.message?.includes("Password")) {
+        errorMessage = "La contraseña no cumple con los requisitos mínimos";
+      } else if (error?.code === "23505") {
+        errorMessage = "Este usuario ya existe en el sistema";
+      } else if (error?.message?.includes("profiles")) {
+        errorMessage = "Error al crear tu perfil. Verifica que todos los datos sean correctos";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(`❌ ${errorMessage}`);
       
       // Limpiar datos temporales y volver al inicio
       sessionStorage.removeItem('pendingRegistration');
