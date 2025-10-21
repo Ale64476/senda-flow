@@ -211,9 +211,20 @@ const OnboardingForm = () => {
 
       if (profileError) {
         console.error("Error al crear perfil:", profileError);
-        // Si falla el perfil, eliminar el usuario de auth
-        await supabase.auth.admin.deleteUser(authData.user.id);
         throw profileError;
+      }
+
+      // PASO 3: Crear el rol de usuario
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: authData.user.id,
+          role: 'user'
+        });
+
+      if (roleError) {
+        console.error("Error al crear rol de usuario:", roleError);
+        throw roleError;
       }
 
       // Limpiar datos temporales
