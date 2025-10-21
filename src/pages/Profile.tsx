@@ -76,8 +76,8 @@ const Profile = () => {
       .from("profiles")
       .update({
         full_name: formData.full_name,
-        fitness_level: formData.fitness_level,
-        fitness_goal: formData.fitness_goal,
+        fitness_level: formData.fitness_level as any,
+        fitness_goal: formData.fitness_goal as any,
         weight: parseFloat(formData.weight) || null,
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
