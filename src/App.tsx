@@ -22,7 +22,10 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const [hasProfile, setHasProfile] = useState(false);
+  const [profileData, setProfileData] = useState<{ exists: boolean; completed: boolean }>({ 
+    exists: false, 
+    completed: false 
+  });
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -34,15 +37,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           .maybeSingle();
 
         if (data) {
-          setHasProfile(true);
-          if (!data.onboarding_completed) {
-            // Perfil existe pero no completó onboarding - redirigir
-            setCheckingProfile(false);
-            return;
-          }
-        } else {
-          // No hay perfil - debe completar onboarding
-          setHasProfile(false);
+          setProfileData({ 
+            exists: true, 
+            completed: data.onboarding_completed || false 
+          });
         }
       }
       setCheckingProfile(false);
@@ -61,14 +59,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Si no hay usuario → redirigir a auth
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!hasProfile) {
+  // Si no hay perfil o el perfil no está completo → redirigir a onboarding
+  if (!profileData.exists || !profileData.completed) {
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Usuario autenticado con perfil completo → permitir acceso
   return <>{children}</>;
 };
 
@@ -123,7 +124,10 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const [hasProfile, setHasProfile] = useState(false);
+  const [profileData, setProfileData] = useState<{ exists: boolean; completed: boolean }>({ 
+    exists: false, 
+    completed: false 
+  });
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -135,7 +139,10 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
           .maybeSingle();
 
         if (data) {
-          setHasProfile(true);
+          setProfileData({ 
+            exists: true, 
+            completed: data.onboarding_completed || false 
+          });
         }
       }
       setCheckingProfile(false);
@@ -154,14 +161,17 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (user && !hasProfile) {
+  // Si hay usuario autenticado
+  if (user) {
+    // Si existe perfil y está completo → ir a dashboard
+    if (profileData.exists && profileData.completed) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    // Si existe perfil pero no está completo, o no existe perfil → ir a onboarding
     return <Navigate to="/onboarding" replace />;
   }
 
-  if (user && hasProfile) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
+  // Si no hay usuario → mostrar auth
   return <>{children}</>;
 };
 

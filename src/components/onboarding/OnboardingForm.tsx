@@ -27,9 +27,6 @@ const OnboardingForm = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
-        // Verificar si hay datos de registro pendiente
-        const pendingReg = sessionStorage.getItem('pendingRegistration');
-        
         // Si hay usuario autenticado, verificar su estado
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -42,23 +39,30 @@ const OnboardingForm = () => {
             .maybeSingle();
 
           if (profile?.onboarding_completed) {
+            // Ya completó onboarding, ir a dashboard
             navigate("/dashboard", { replace: true });
             return;
           }
-          // Si no completó onboarding, permitir continuar
-        } else if (!pendingReg) {
+          // Si no completó onboarding, permitir continuar (usuario autenticado sin perfil completo)
+          setCheckingProfile(false);
+          return;
+        }
+        
+        // No hay usuario autenticado, verificar si hay registro pendiente
+        const pendingReg = sessionStorage.getItem('pendingRegistration');
+        if (!pendingReg) {
           // No hay usuario ni registro pendiente - redirigir a auth
           toast.error("Debes registrarte primero");
           navigate("/auth", { replace: true });
           return;
         }
-        // Si hay pendingReg pero no hay usuario, permitir continuar (flujo normal de registro)
+        
+        // Hay registro pendiente, permitir continuar (flujo normal de registro)
+        setCheckingProfile(false);
       } catch (error: any) {
         console.error("Error checking onboarding status:", error);
-        const errorMessage = error?.message || "Error desconocido al verificar tu registro";
-        toast.error(`Error: ${errorMessage}. Por favor vuelve a intentarlo.`);
+        toast.error("Error al verificar tu registro. Por favor vuelve a intentarlo.");
         navigate("/auth", { replace: true });
-      } finally {
         setCheckingProfile(false);
       }
     };
