@@ -102,7 +102,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-20 pb-32 px-4">
+      <div className="pt-32 pb-20 px-4">
         <div className="container mx-auto max-w-4xl space-y-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">Mi Perfil</h1>
