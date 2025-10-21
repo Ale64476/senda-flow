@@ -99,47 +99,119 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          allergies_restrictions: string | null
+          available_days_per_week: number | null
+          average_sleep_hours: number | null
           created_at: string
+          current_calorie_intake: number | null
+          current_medications: string | null
           daily_calorie_goal: number | null
           daily_carbs_goal: number | null
           daily_fat_goal: number | null
           daily_protein_goal: number | null
+          dietary_preferences: string[] | null
           fitness_goal: Database["public"]["Enums"]["fitness_goal"]
           fitness_level: Database["public"]["Enums"]["fitness_level"]
           full_name: string
+          gender: string | null
+          health_conditions: string[] | null
           height: number | null
           id: string
+          initial_measurements: Json | null
+          initial_photo_url: string | null
+          injuries_limitations: string | null
+          menstrual_auto_sync: boolean | null
+          menstrual_tracking_app: string | null
+          menstrual_tracking_enabled: boolean | null
+          motivation_phrase: string | null
+          notifications_enabled: boolean | null
+          onboarding_completed: boolean | null
+          primary_goal: string | null
+          session_duration_minutes: number | null
+          stress_level: number | null
+          terms_accepted: boolean | null
+          theme_preference: string | null
+          training_types: string[] | null
           updated_at: string
+          wearables_sync_enabled: boolean | null
           weight: number | null
         }
         Insert: {
           age?: number | null
+          allergies_restrictions?: string | null
+          available_days_per_week?: number | null
+          average_sleep_hours?: number | null
           created_at?: string
+          current_calorie_intake?: number | null
+          current_medications?: string | null
           daily_calorie_goal?: number | null
           daily_carbs_goal?: number | null
           daily_fat_goal?: number | null
           daily_protein_goal?: number | null
+          dietary_preferences?: string[] | null
           fitness_goal?: Database["public"]["Enums"]["fitness_goal"]
           fitness_level?: Database["public"]["Enums"]["fitness_level"]
           full_name: string
+          gender?: string | null
+          health_conditions?: string[] | null
           height?: number | null
           id: string
+          initial_measurements?: Json | null
+          initial_photo_url?: string | null
+          injuries_limitations?: string | null
+          menstrual_auto_sync?: boolean | null
+          menstrual_tracking_app?: string | null
+          menstrual_tracking_enabled?: boolean | null
+          motivation_phrase?: string | null
+          notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          primary_goal?: string | null
+          session_duration_minutes?: number | null
+          stress_level?: number | null
+          terms_accepted?: boolean | null
+          theme_preference?: string | null
+          training_types?: string[] | null
           updated_at?: string
+          wearables_sync_enabled?: boolean | null
           weight?: number | null
         }
         Update: {
           age?: number | null
+          allergies_restrictions?: string | null
+          available_days_per_week?: number | null
+          average_sleep_hours?: number | null
           created_at?: string
+          current_calorie_intake?: number | null
+          current_medications?: string | null
           daily_calorie_goal?: number | null
           daily_carbs_goal?: number | null
           daily_fat_goal?: number | null
           daily_protein_goal?: number | null
+          dietary_preferences?: string[] | null
           fitness_goal?: Database["public"]["Enums"]["fitness_goal"]
           fitness_level?: Database["public"]["Enums"]["fitness_level"]
           full_name?: string
+          gender?: string | null
+          health_conditions?: string[] | null
           height?: number | null
           id?: string
+          initial_measurements?: Json | null
+          initial_photo_url?: string | null
+          injuries_limitations?: string | null
+          menstrual_auto_sync?: boolean | null
+          menstrual_tracking_app?: string | null
+          menstrual_tracking_enabled?: boolean | null
+          motivation_phrase?: string | null
+          notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          primary_goal?: string | null
+          session_duration_minutes?: number | null
+          stress_level?: number | null
+          terms_accepted?: boolean | null
+          theme_preference?: string | null
+          training_types?: string[] | null
           updated_at?: string
+          wearables_sync_enabled?: boolean | null
           weight?: number | null
         }
         Relationships: []
