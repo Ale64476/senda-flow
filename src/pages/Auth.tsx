@@ -72,29 +72,20 @@ const Auth = () => {
     try {
       const validation = authSchema.parse({ email, password, fullName });
       
-      const { data, error } = await supabase.auth.signUp({
+      // Guardar datos temporalmente para crear la cuenta al finalizar el formulario
+      sessionStorage.setItem('pendingRegistration', JSON.stringify({
         email: validation.email,
         password: validation.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/onboarding`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
-      if (error) throw error;
+        fullName: validation.fullName,
+      }));
       
-      if (data.user) {
-        toast.success("¡Cuenta creada! Ahora completa tu perfil");
-        // Navegar al formulario de onboarding solo después del registro exitoso
-        navigate("/onboarding");
-      }
+      toast.success("¡Perfecto! Ahora completa tu perfil");
+      navigate("/onboarding");
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       } else {
-        toast.error(error.message || "Error al crear cuenta");
+        toast.error(error.message || "Error al validar datos");
       }
     } finally {
       setLoading(false);

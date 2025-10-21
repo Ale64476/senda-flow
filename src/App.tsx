@@ -27,13 +27,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkProfile = async () => {
       if (user) {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
           .select("id, onboarding_completed")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        if (!error && data) {
+        if (data) {
           setHasProfile(true);
           if (!data.onboarding_completed) {
             // Perfil existe pero no completó onboarding - redirigir
@@ -73,18 +73,38 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
+  const [checkingRegistration, setCheckingRegistration] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const checkPendingRegistration = () => {
+      const pendingReg = sessionStorage.getItem('pendingRegistration');
+      if (!pendingReg) {
+        // No hay registro pendiente, verificar si hay usuario
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (!user) {
+            // No hay usuario ni registro pendiente
+            setCheckingRegistration(false);
+          } else {
+            setCheckingRegistration(false);
+          }
+        });
+      } else {
+        setCheckingRegistration(false);
+      }
+    };
+
+    if (!loading) {
+      checkPendingRegistration();
+    }
+  }, [loading]);
+
+  if (loading || checkingRegistration) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
@@ -102,7 +122,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
           .from("profiles")
           .select("id, onboarding_completed")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (data) {
           setHasProfile(true);

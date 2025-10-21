@@ -23,25 +23,32 @@ const OnboardingForm = () => {
   const totalSteps = 7;
   const progress = (currentStep / totalSteps) * 100;
 
-  // Verificar si el usuario ya completó el onboarding
+  // Verificar si hay registro pendiente o si ya completó onboarding
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error("Debes iniciar sesión para completar tu registro");
-          navigate("/auth", { replace: true });
-          return;
-        }
+        // Verificar si hay datos de registro pendiente
+        const pendingReg = sessionStorage.getItem('pendingRegistration');
         
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("onboarding_completed")
-          .eq("id", user.id)
-          .single();
+        // Si hay usuario autenticado, verificar su estado
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Usuario ya autenticado, verificar onboarding
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("id", user.id)
+            .maybeSingle();
 
-        if (profile?.onboarding_completed) {
-          navigate("/dashboard", { replace: true });
+          if (profile?.onboarding_completed) {
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+        } else if (!pendingReg) {
+          // No hay usuario ni registro pendiente
+          toast.error("Debes registrarte primero");
+          navigate("/auth", { replace: true });
           return;
         }
       } catch (error) {
@@ -134,20 +141,38 @@ const OnboardingForm = () => {
     
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Obtener datos del registro pendiente
+      const pendingRegString = sessionStorage.getItem('pendingRegistration');
       
-      if (!user) {
-        toast.error("Error: Sesión no válida. Por favor, vuelve a registrarte.");
+      if (!pendingRegString) {
+        toast.error("Error: No hay registro pendiente. Por favor, vuelve a registrarte.");
         navigate("/auth");
         return;
       }
 
-      // CREAR el perfil completo (INSERT) en lugar de actualizar
-      const { error } = await supabase
+      const pendingReg = JSON.parse(pendingRegString);
+      
+      // PASO 1: Crear usuario en Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: pendingReg.email,
+        password: pendingReg.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: pendingReg.fullName,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("No se pudo crear el usuario");
+
+      // PASO 2: Crear el perfil completo en la base de datos
+      const { error: profileError } = await supabase
         .from("profiles")
         .insert({
-          id: user.id,
-          full_name: formData.fullName,
+          id: authData.user.id,
+          full_name: formData.fullName || pendingReg.fullName,
           age: formData.age,
           gender: formData.gender,
           height: formData.height,
@@ -183,26 +208,28 @@ const OnboardingForm = () => {
           onboarding_completed: true
         });
 
-      if (error) {
-        console.error("Error al crear perfil:", error);
-        throw error;
+      if (profileError) {
+        console.error("Error al crear perfil:", profileError);
+        // Si falla el perfil, eliminar el usuario de auth
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw profileError;
       }
 
-      toast.success("¡Registro completado! Bienvenida a SendaFit 🎉");
+      // Limpiar datos temporales
+      sessionStorage.removeItem('pendingRegistration');
+
+      toast.success("¡Cuenta creada exitosamente! Bienvenida a SendaFit 🎉");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error en handleSubmit:", error);
-      toast.error("❌ Hubo un error al completar tu registro. Por favor, cierra la app y vuelve a registrarte desde el inicio.");
+      toast.error("❌ Hubo un error al completar tu registro. Por favor, intenta registrarte nuevamente.");
       
-      // Eliminar el usuario de auth si falló el registro
-      try {
-        await supabase.auth.signOut();
-        setTimeout(() => {
-          navigate("/auth");
-        }, 3000);
-      } catch (signOutError) {
-        console.error("Error al cerrar sesión:", signOutError);
-      }
+      // Limpiar datos temporales y volver al inicio
+      sessionStorage.removeItem('pendingRegistration');
+      
+      setTimeout(() => {
+        navigate("/auth");
+      }, 3000);
     } finally {
       setLoading(false);
     }
