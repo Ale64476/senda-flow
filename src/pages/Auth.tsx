@@ -62,7 +62,7 @@ const Auth = () => {
         email: validation.email,
         password: validation.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/onboarding`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
           },
@@ -71,8 +71,8 @@ const Auth = () => {
 
       if (error) throw error;
       
-      toast.success("¡Cuenta creada! Completa tu perfil");
-      navigate("/onboarding");
+      toast.success("¡Cuenta creada! Bienvenida a SendaFit");
+      navigate("/dashboard");
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
