@@ -34,10 +34,11 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="primaryGoal">Objetivo principal</Label>
+          <Label htmlFor="primaryGoal">Objetivo principal *</Label>
           <Select
             value={formData.primaryGoal || ""}
             onValueChange={(value) => updateFormData({ primaryGoal: value })}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona tu objetivo" />
@@ -52,10 +53,11 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="fitnessLevel">Nivel actual</Label>
+          <Label htmlFor="fitnessLevel">Nivel actual *</Label>
           <Select
             value={formData.fitnessLevel || ""}
             onValueChange={(value) => updateFormData({ fitnessLevel: value })}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona tu nivel" />
@@ -69,7 +71,7 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
         </div>
 
         <div className="space-y-3">
-          <Label>Tipo de entrenamiento preferido</Label>
+          <Label>Tipo de entrenamiento preferido *</Label>
           {trainingOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
               <Checkbox
@@ -86,10 +88,11 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="availableDays">Días por semana</Label>
+            <Label htmlFor="availableDays">Días por semana *</Label>
             <Select
               value={formData.availableDays?.toString() || ""}
               onValueChange={(value) => updateFormData({ availableDays: parseInt(value) })}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Días" />
@@ -105,7 +108,7 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sessionDuration">Duración (min)</Label>
+            <Label htmlFor="sessionDuration">Duración (min) *</Label>
             <Input
               id="sessionDuration"
               type="number"
@@ -114,6 +117,7 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
               placeholder="60"
               min="15"
               max="180"
+              required
             />
           </div>
         </div>

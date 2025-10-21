@@ -110,13 +110,45 @@ const OnboardingForm = () => {
         break;
       case 2:
         if (!formData.primaryGoal || !formData.fitnessLevel) {
-          toast.error("Por favor selecciona tu objetivo y nivel");
+          toast.error("Por favor completa tu objetivo y nivel");
+          return false;
+        }
+        if (!formData.trainingTypes || formData.trainingTypes.length === 0) {
+          toast.error("Por favor selecciona al menos un tipo de entrenamiento");
+          return false;
+        }
+        if (!formData.availableDays) {
+          toast.error("Por favor indica cuántos días por semana puedes entrenar");
+          return false;
+        }
+        if (!formData.sessionDuration) {
+          toast.error("Por favor indica la duración de tus sesiones");
+          return false;
+        }
+        break;
+      case 3:
+        if (!formData.healthConditions || formData.healthConditions.length === 0) {
+          toast.error("Por favor selecciona al menos una opción en condiciones de salud");
+          return false;
+        }
+        break;
+      case 5:
+        if (!formData.dietaryPreferences || formData.dietaryPreferences.length === 0) {
+          toast.error("Por favor selecciona al menos una preferencia alimenticia");
+          return false;
+        }
+        if (!formData.sleepHours) {
+          toast.error("Por favor indica tus horas de sueño promedio");
+          return false;
+        }
+        if (!formData.stressLevel) {
+          toast.error("Por favor indica tu nivel de estrés percibido");
           return false;
         }
         break;
       case 7:
         if (!formData.termsAccepted) {
-          toast.error("Debes aceptar los términos y condiciones");
+          toast.error("Debes aceptar los términos y condiciones para continuar");
           return false;
         }
         break;

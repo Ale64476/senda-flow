@@ -45,7 +45,7 @@ const OnboardingStep3 = ({ formData, updateFormData }: OnboardingStep3Props) => 
 
       <div className="space-y-4">
         <div className="space-y-3">
-          <Label>¿Tienes alguna condición o enfermedad diagnosticada?</Label>
+          <Label>¿Tienes alguna condición o enfermedad diagnosticada? *</Label>
           {healthConditions.map((condition) => (
             <div key={condition.id} className="flex items-center space-x-2">
               <Checkbox

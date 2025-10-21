@@ -35,7 +35,7 @@ const OnboardingStep5 = ({ formData, updateFormData }: OnboardingStep5Props) => 
 
       <div className="space-y-4">
         <div className="space-y-3">
-          <Label>Preferencias alimenticias</Label>
+          <Label>Preferencias alimenticias *</Label>
           {dietaryOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
               <Checkbox
@@ -78,7 +78,7 @@ const OnboardingStep5 = ({ formData, updateFormData }: OnboardingStep5Props) => 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="sleepHours">Horas de sueño promedio por noche</Label>
+          <Label htmlFor="sleepHours">Horas de sueño promedio por noche *</Label>
           <Input
             id="sleepHours"
             type="number"
@@ -88,12 +88,13 @@ const OnboardingStep5 = ({ formData, updateFormData }: OnboardingStep5Props) => 
             placeholder="7.5"
             min="3"
             max="12"
+            required
           />
         </div>
 
         <div className="space-y-3">
           <Label htmlFor="stressLevel">
-            Nivel de estrés percibido: {formData.stressLevel || 3}
+            Nivel de estrés percibido *: {formData.stressLevel || 3}
           </Label>
           <Slider
             id="stressLevel"
