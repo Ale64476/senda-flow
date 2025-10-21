@@ -102,48 +102,20 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Hero Image */}
-      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-90 z-10" />
-        <img
-          src={heroImage}
-          alt="Fitness motivation"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-12">
-          <div className="text-white space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Dumbbell className="w-10 h-10" />
-              </div>
-              <h1 className="text-5xl font-bold">SendaFit</h1>
-            </div>
-            <p className="text-2xl font-light">
-              Tu compañera en el camino hacia una vida más saludable
-            </p>
-            <div className="space-y-2 text-lg">
-              <p>✓ Seguimiento personalizado de macros</p>
-              <p>✓ Rutinas adaptadas a tu nivel</p>
-              <p>✓ Visualiza tu progreso en tiempo real</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right side - Auth Forms */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-2 lg:hidden">
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Right side - Auth Forms - Now full width for mobile */}
+      <div className="w-full flex items-center justify-center p-4 sm:p-8 flex-1">
+        <div className="w-full max-w-md space-y-4 sm:space-y-6">
+          <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center">
-                <Dumbbell className="w-10 h-10 text-primary-foreground" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
+                <Dumbbell className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               SendaFit
             </h1>
-            <p className="text-muted-foreground">Tu viaje fitness comienza aquí</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Tu entrenadora personal móvil</p>
           </div>
 
           <Tabs defaultValue="signin" className="w-full">

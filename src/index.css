@@ -53,6 +53,7 @@ All colors MUST be HSL.
     /* Shadows */
     --shadow-card: 0 4px 20px -2px hsl(160 84% 39% / 0.1);
     --shadow-elevated: 0 10px 40px -10px hsl(160 84% 39% / 0.15);
+    --shadow-glow: 0 0 40px hsl(160 84% 49% / 0.4);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -96,6 +97,7 @@ All colors MUST be HSL.
     
     --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
     --shadow-elevated: 0 10px 40px -10px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 40px hsl(160 84% 55% / 0.5);
   }
 }
 
@@ -106,5 +108,20 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Optimización para móvil */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+    touch-action: pan-x pan-y;
+  }
+  
+  /* Evitar zoom en inputs en iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

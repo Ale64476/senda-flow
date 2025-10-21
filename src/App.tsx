@@ -21,10 +21,41 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, onboarding_completed")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && data) {
+          setHasProfile(true);
+          if (!data.onboarding_completed) {
+            // Perfil existe pero no completó onboarding - redirigir
+            setCheckingProfile(false);
+            return;
+          }
+        } else {
+          // No hay perfil - debe completar onboarding
+          setHasProfile(false);
+        }
+      }
+      setCheckingProfile(false);
+    };
+
+    if (!loading) {
+      checkProfile();
+    }
+  }, [user, loading]);
+
+  if (loading || checkingProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
@@ -32,6 +63,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (!hasProfile) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
@@ -57,16 +92,43 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, onboarding_completed")
+          .eq("id", user.id)
+          .single();
+
+        if (data) {
+          setHasProfile(true);
+        }
+      }
+      setCheckingProfile(false);
+    };
+
+    if (!loading) {
+      checkProfile();
+    }
+  }, [user, loading]);
+
+  if (loading || (user && checkingProfile)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
   }
 
-  if (user) {
+  if (user && !hasProfile) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  if (user && hasProfile) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -76,7 +138,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/auth" replace />} />
       <Route
         path="/auth"
         element={

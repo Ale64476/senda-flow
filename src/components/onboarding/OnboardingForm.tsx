@@ -29,7 +29,7 @@ const OnboardingForm = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          // Si no hay usuario, redirigir a auth
+          toast.error("Debes iniciar sesión para completar tu registro");
           navigate("/auth", { replace: true });
           return;
         }
@@ -46,6 +46,7 @@ const OnboardingForm = () => {
         }
       } catch (error) {
         console.error("Error checking onboarding status:", error);
+        toast.error("Error al verificar tu registro. Por favor vuelve a intentarlo.");
         navigate("/auth", { replace: true });
       } finally {
         setCheckingProfile(false);
@@ -55,19 +56,29 @@ const OnboardingForm = () => {
     checkOnboardingStatus();
   }, [navigate]);
 
-  // Prevenir cierre de ventana/pestaña sin completar
+  // Prevenir cierre de ventana/pestaña sin completar y alertar al usuario
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
+      if (currentStep > 0) {
+        e.preventDefault();
+        e.returnValue = "¿Estás segura de salir? Perderás tu progreso y deberás registrarte nuevamente.";
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && currentStep > 0 && currentStep < totalSteps) {
+        toast.warning("⚠️ No cierres la app hasta completar tu registro");
+      }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [currentStep, totalSteps]);
 
   if (checkingProfile) {
     return (
@@ -126,14 +137,16 @@ const OnboardingForm = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast.error("Sesión expirada. Por favor inicia sesión nuevamente.");
+        toast.error("Error: Sesión no válida. Por favor, vuelve a registrarte.");
         navigate("/auth");
         return;
       }
 
+      // CREAR el perfil completo (INSERT) en lugar de actualizar
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .insert({
+          id: user.id,
           full_name: formData.fullName,
           age: formData.age,
           gender: formData.gender,
@@ -168,19 +181,28 @@ const OnboardingForm = () => {
           wearables_sync_enabled: formData.wearables || false,
           terms_accepted: formData.termsAccepted,
           onboarding_completed: true
-        })
-        .eq("id", user.id);
+        });
 
       if (error) {
-        console.error("Error al guardar perfil:", error);
-        throw new Error("No se pudo guardar tu perfil. Por favor intenta nuevamente.");
+        console.error("Error al crear perfil:", error);
+        throw error;
       }
 
-      toast.success("¡Perfil completado! Bienvenida a SendaFit");
+      toast.success("¡Registro completado! Bienvenida a SendaFit 🎉");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || "Error al guardar el perfil. Por favor intenta nuevamente.");
       console.error("Error en handleSubmit:", error);
+      toast.error("❌ Hubo un error al completar tu registro. Por favor, cierra la app y vuelve a registrarte desde el inicio.");
+      
+      // Eliminar el usuario de auth si falló el registro
+      try {
+        await supabase.auth.signOut();
+        setTimeout(() => {
+          navigate("/auth");
+        }, 3000);
+      } catch (signOutError) {
+        console.error("Error al cerrar sesión:", signOutError);
+      }
     } finally {
       setLoading(false);
     }
@@ -202,8 +224,8 @@ const OnboardingForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-      <div className="w-full max-w-lg space-y-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
+      <div className="w-full max-w-lg space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -216,7 +238,7 @@ const OnboardingForm = () => {
         </div>
 
         {/* Step Content */}
-        <div className="bg-card border rounded-lg p-6 min-h-[500px]">
+        <div className="bg-card border rounded-lg p-4 sm:p-6 min-h-[450px] sm:min-h-[500px]">
           {renderStep()}
         </div>
 
