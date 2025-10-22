@@ -62,10 +62,18 @@ serve(async (req) => {
       .from('predesigned_plans')
       .select('*')
       .eq('id', profile.assigned_routine_id)
-      .single();
+      .maybeSingle();
 
-    if (planError || !plan) {
+    if (planError) {
       console.error('Error fetching assigned plan:', planError);
+      return new Response(
+        JSON.stringify({ error: 'Database error fetching plan' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!plan) {
+      console.warn('No plan found for routine ID:', profile.assigned_routine_id);
       return new Response(
         JSON.stringify({ error: 'Assigned plan not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -52,9 +52,16 @@ serve(async (req) => {
       .select('*')
       .eq('id', workout_id)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !workout) {
+    if (fetchError) {
+      return new Response(
+        JSON.stringify({ error: 'Database error', details: fetchError }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!workout) {
       return new Response(
         JSON.stringify({ error: 'Workout not found or access denied' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
