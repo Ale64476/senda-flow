@@ -405,15 +405,15 @@ const Macros = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Stats en cuadros
-                <div className="h-full flex items-center justify-center px-3" key="stats">
-                  <div className="grid grid-cols-2 gap-2.5 w-full max-w-md mx-auto">
+                <div className="h-full flex flex-col justify-start pt-6 px-4" key="stats">
+                  <div className="grid grid-cols-2 gap-3 w-full">
                     <StatCard
                       title="Calorías"
                       value={totals.calories}
                       subtitle={`Meta: ${profile?.daily_calorie_goal || 2000}`}
                       icon={Flame}
                       variant="primary"
-                      className="h-[120px]"
+                      className="h-[135px]"
                     />
                     <StatCard
                       title="Proteína"
@@ -421,21 +421,21 @@ const Macros = () => {
                       subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
                       icon={Beef}
                       variant="secondary"
-                      className="h-[120px]"
+                      className="h-[135px]"
                     />
                     <StatCard
                       title="Carbohidratos"
                       value={`${totals.carbs}g`}
                       subtitle={`Meta: ${profile?.daily_carbs_goal || 200}g`}
                       icon={Pizza}
-                      className="h-[120px]"
+                      className="h-[135px]"
                     />
                     <StatCard
                       title="Grasas"
                       value={`${totals.fat}g`}
                       subtitle={`Meta: ${profile?.daily_fat_goal || 50}g`}
                       icon={Droplet}
-                      className="h-[120px]"
+                      className="h-[135px]"
                     />
                   </div>
                 </div>,
