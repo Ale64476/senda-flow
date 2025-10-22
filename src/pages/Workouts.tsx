@@ -32,10 +32,18 @@ const Workouts = () => {
   const [open, setOpen] = useState(false);
   const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
   const [configuredExercises, setConfiguredExercises] = useState<ConfiguredExercise[]>([]);
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     location: "casa",
-    scheduled_date: format(new Date(), "yyyy-MM-dd"),
+    scheduled_date: getTodayDate(),
   });
 
   useEffect(() => {
@@ -155,7 +163,7 @@ const Workouts = () => {
     setFormData({
       name: "",
       location: "casa",
-      scheduled_date: format(new Date(), "yyyy-MM-dd"),
+      scheduled_date: getTodayDate(),
     });
     setConfiguredExercises([]);
     fetchWorkouts();

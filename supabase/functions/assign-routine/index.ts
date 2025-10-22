@@ -143,8 +143,11 @@ serve(async (req) => {
     console.log(`Best match: ${bestPlan.plan_id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
     // Create base workout template from the best plan
-    const workoutDate = new Date();
-    workoutDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayDate = `${year}-${month}-${day}`;
 
     // Calculate estimated calories based on exercises
     let estimatedCalories = 0;
@@ -171,7 +174,7 @@ serve(async (req) => {
         name: bestPlan.nombre_plan,
         description: bestPlan.descripcion_plan,
         location: bestPlan.lugar.toLowerCase().includes('gimnasio') ? 'gimnasio' : 'casa',
-        scheduled_date: workoutDate.toISOString().split('T')[0],
+        scheduled_date: todayDate,
         completed: false,
         duration_minutes: profile.session_duration_minutes || 60,
         estimated_calories: Math.round(estimatedCalories)
