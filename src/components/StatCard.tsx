@@ -29,38 +29,36 @@ export const StatCard = ({
   return (
     <Card
       className={cn(
-        "p-3 sm:p-4 shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] h-full",
+        "p-4 sm:p-5 lg:p-6 shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]",
         variants[variant],
         className
       )}
     >
-      <div className="flex flex-col h-full justify-between gap-2.5 sm:gap-3">
-        <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
           <p className={cn(
-            "text-xs sm:text-sm font-semibold uppercase tracking-wide leading-tight flex-1",
+            "text-xs sm:text-sm font-semibold truncate uppercase tracking-wide",
             variant === "default" ? "text-muted-foreground" : "opacity-90"
           )}>
             {title}
           </p>
-          <div className={cn(
-            "p-2 sm:p-2.5 rounded-lg flex-shrink-0",
-            variant === "default" 
-              ? "bg-primary/10 text-primary" 
-              : "bg-white/25 backdrop-blur-sm text-white"
-          )}>
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-        <div className="flex flex-col gap-1 sm:gap-1.5">
-          <p className="text-xl sm:text-2xl lg:text-3xl font-bold leading-none break-words">{value}</p>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-bold truncate">{value}</p>
           {subtitle && (
             <p className={cn(
-              "text-[10px] sm:text-xs font-medium leading-snug break-words",
+              "text-xs sm:text-sm truncate font-medium",
               variant === "default" ? "text-muted-foreground" : "opacity-80"
             )}>
               {subtitle}
             </p>
           )}
+        </div>
+        <div className={cn(
+          "p-3 sm:p-3.5 lg:p-4 rounded-2xl flex-shrink-0 shadow-sm",
+          variant === "default" 
+            ? "bg-primary/10 text-primary" 
+            : "bg-white/25 backdrop-blur-sm text-white"
+        )}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
         </div>
       </div>
     </Card>

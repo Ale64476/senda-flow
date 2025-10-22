@@ -110,7 +110,7 @@ const Dashboard = () => {
     <div key="stats" className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          title="Calorías"
+          title="Calorías Hoy"
           value={todayMacros.calories}
           subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
           icon={Flame}
@@ -124,15 +124,16 @@ const Dashboard = () => {
           variant="secondary"
         />
         <StatCard
-          title="Ejercicios"
+          title="Entrenamientos Hoy"
           value={todayWorkouts.length}
-          subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
+          subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
           icon={Activity}
           variant="accent"
         />
         <StatCard
           title="Nivel"
           value={profile?.fitness_level || "Principiante"}
+          subtitle={profile?.fitness_goal || "Mantener peso"}
           icon={TrendingUp}
         />
       </div>
@@ -258,7 +259,7 @@ const Dashboard = () => {
           <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               <StatCard
-                title="Calorías"
+                title="Calorías Hoy"
                 value={todayMacros.calories}
                 subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
                 icon={Flame}
@@ -272,15 +273,16 @@ const Dashboard = () => {
                 variant="secondary"
               />
               <StatCard
-                title="Ejercicios"
+                title="Entrenamientos Hoy"
                 value={todayWorkouts.length}
-                subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
+                subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
                 icon={Activity}
                 variant="accent"
               />
               <StatCard
                 title="Nivel"
                 value={profile?.fitness_level || "Principiante"}
+                subtitle={profile?.fitness_goal || "Mantener peso"}
                 icon={TrendingUp}
               />
             </div>
