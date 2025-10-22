@@ -68,7 +68,7 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
                 maxHeight: 'calc(100vh - 12rem)'
               }}
             >
-              <div className="w-full h-full overflow-y-auto animate-fade-in pointer-events-auto">
+              <div className="w-full h-full animate-fade-in pointer-events-auto">
                 {section}
               </div>
             </div>
