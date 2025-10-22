@@ -116,7 +116,6 @@ const Dashboard = () => {
           value={todayWorkouts.length}
           subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
           icon={Activity}
-          variant="accent"
         />
         <StatCard
           title="Nivel"
@@ -265,7 +264,6 @@ const Dashboard = () => {
                 value={todayWorkouts.length}
                 subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
                 icon={Activity}
-                variant="accent"
               />
               <StatCard
                 title="Nivel"
