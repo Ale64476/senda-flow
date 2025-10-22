@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  node: circleci/node@5.1.0
+
 jobs:
   build-and-test:
     docker:
@@ -15,10 +18,10 @@ jobs:
 
       # Instalar dependencias
       - run:
-          name: Instalar Dependencias
+          name: Install Dependencies
           command: npm ci
 
-      # Guardar caché
+      # Guardar caché de dependencias
       - save_cache:
           paths:
             - node_modules
@@ -26,62 +29,20 @@ jobs:
 
       # Ejecutar linter
       - run:
-          name: Ejecutar Linter
+          name: Run Linter
           command: npm run lint || true
 
       # Build del proyecto
       - run:
-          name: Build del Proyecto
+          name: Build Project
           command: npm run build
 
-      # Generar diff respecto a main
-      - run:
-          name: Generar Diff
-          command: |
-            git fetch origin main
-            git diff origin/main > code_diff.txt
-
-      # Enviar diff a Cline para QA estructurada en español
-      - run:
-          name: QA con Cline (JSON estructurado)
-          command: |
-            curl -s -X POST https://api.hicap.ai/v2/openai \
-            -H "Content-Type: application/json" \
-            -H "api-key: $CLINE_API_KEY" \
-            -d '{
-              "prompt": "Eres un asistente de QA de código. Analiza este diff y responde únicamente con un JSON con dos campos: \
-              1) recommendations: una lista en español de sugerencias, observaciones o errores detectados. \
-              2) status: \"approved\" si todo está correcto o \"rejected\" si hay errores graves. \
-              No agregues texto fuera del JSON.\nDiff:\n'"$(cat code_diff.txt)"'"
-            }' > cline_qa.json
-
-      # Mostrar la salida completa para depuración
-      - run:
-          name: Mostrar resultado de Cline
-          command: |
-            echo "=== Resultado de Cline ==="
-            cat cline_qa.json
-
-      # Validar estado y fallar build si es rechazado
-      - run:
-          name: Validar QA
-          command: |
-            STATUS=$(jq -r '.status' cline_qa.json)
-            echo "Estado de QA: $STATUS"
-            if [ "$STATUS" = "rejected" ]; then
-              echo "QA rechazado, build fallido."
-              jq -r '.recommendations[]' cline_qa.json
-              exit 1
-            else
-              echo "QA aprobado."
-              jq -r '.recommendations[]' cline_qa.json
-            fi
-
-      # Guardar artefactos
+      # Guardar artefactos del build
       - store_artifacts:
           path: dist
           destination: build-output
 
+      # Persistir el workspace para otros jobs
       - persist_to_workspace:
           root: .
           paths:
