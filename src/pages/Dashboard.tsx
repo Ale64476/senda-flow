@@ -110,7 +110,7 @@ const Dashboard = () => {
     <div key="stats" className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          title="Calorías Hoy"
+          title="Calorías"
           value={todayMacros.calories}
           subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
           icon={Flame}
@@ -124,7 +124,7 @@ const Dashboard = () => {
           variant="secondary"
         />
         <StatCard
-          title="Entrenamientos Hoy"
+          title="Ejercicio"
           value={todayWorkouts.length}
           subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
           icon={Activity}
@@ -259,7 +259,7 @@ const Dashboard = () => {
           <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               <StatCard
-                title="Calorías Hoy"
+                title="Calorías"
                 value={todayMacros.calories}
                 subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
                 icon={Flame}
@@ -273,7 +273,7 @@ const Dashboard = () => {
                 variant="secondary"
               />
               <StatCard
-                title="Entrenamientos Hoy"
+                title="Ejercicio"
                 value={todayWorkouts.length}
                 subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
                 icon={Activity}

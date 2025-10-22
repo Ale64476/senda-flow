@@ -45,7 +45,7 @@ export const StatCard = ({
           <p className="text-2xl sm:text-3xl lg:text-4xl font-black truncate">{value}</p>
           {subtitle && (
             <p className={cn(
-              "text-xs sm:text-sm truncate font-medium",
+              "text-[10px] sm:text-xs truncate font-medium leading-tight",
               variant === "default" ? "text-muted-foreground" : "opacity-80"
             )}>
               {subtitle}
