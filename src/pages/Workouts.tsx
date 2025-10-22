@@ -233,20 +233,20 @@ const Workouts = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-28 px-4">
-        <div className="container mx-auto space-y-8">
-          <div className="flex justify-between items-center">
+      <div className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Entrenamientos</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Entrenamientos</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Planifica y registra tus rutinas de ejercicio
               </p>
             </div>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2">
-                  <Plus className="w-5 h-5" />
-                  Nuevo Entrenamiento
+                <Button size="default" className="gap-2 w-full sm:w-auto">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-sm sm:text-base">Nuevo Entrenamiento</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -371,11 +371,11 @@ const Workouts = () => {
           />
 
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="casa">Casa</TabsTrigger>
-              <TabsTrigger value="gimnasio">Gimnasio</TabsTrigger>
-              <TabsTrigger value="exterior">Exterior</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsTrigger value="all" className="text-xs sm:text-sm py-2">Todos</TabsTrigger>
+              <TabsTrigger value="casa" className="text-xs sm:text-sm py-2">Casa</TabsTrigger>
+              <TabsTrigger value="gimnasio" className="text-xs sm:text-sm py-2">Gimnasio</TabsTrigger>
+              <TabsTrigger value="exterior" className="text-xs sm:text-sm py-2">Exterior</TabsTrigger>
             </TabsList>
             <TabsContent value="all" className="mt-6">
               <WorkoutList workouts={workouts} />

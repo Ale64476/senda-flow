@@ -40,16 +40,16 @@ const Calendar = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-28 px-4">
-        <div className="container mx-auto space-y-8">
+      <div className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Calendario Semanal</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Calendario Semanal</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Visualiza tu planificación de entrenamientos
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2 sm:gap-3 lg:gap-4">
             {weekDays.map((day) => {
               const dayWorkouts = getWorkoutsForDate(day);
               const isToday = isSameDay(day, new Date());
@@ -104,8 +104,8 @@ const Calendar = () => {
             })}
           </div>
 
-          <Card className="p-6 shadow-card">
-            <h3 className="text-xl font-semibold mb-4">
+          <Card className="p-4 sm:p-6 shadow-card">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
               Entrenamientos para {format(selectedDate, "EEEE, d 'de' MMMM", { locale: es })}
             </h3>
             {getWorkoutsForDate(selectedDate).length === 0 ? (

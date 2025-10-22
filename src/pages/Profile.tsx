@@ -102,16 +102,16 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-28 px-4">
-        <div className="container mx-auto max-w-4xl space-y-8">
+      <div className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Mi Perfil</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Mi Perfil</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Configura tus datos personales y objetivos
             </p>
           </div>
 
-          <Card className="p-6 shadow-card bg-gradient-card">
+          <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-xl font-semibold">Plan Actual</h3>
@@ -135,8 +135,8 @@ const Profile = () => {
             )}
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <h3 className="text-xl font-semibold mb-6">Información Personal</h3>
+          <Card className="p-4 sm:p-6 shadow-card">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Información Personal</h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label>Nombre Completo</Label>

@@ -108,18 +108,18 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-28 px-4">
-        <div className="container mx-auto space-y-8">
+      <div className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">
               ¡Hola, {profile?.full_name || "Usuario"}!
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
               {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             <StatCard
               title="Calorías Hoy"
               value={todayMacros.calories}
@@ -149,9 +149,9 @@ const Dashboard = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6 shadow-card">
-              <h3 className="text-xl font-semibold mb-4">Progreso de Calorías</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="p-4 sm:p-6 shadow-card">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Progreso de Calorías</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
@@ -174,8 +174,8 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-6 shadow-card">
-              <h3 className="text-xl font-semibold mb-4">Entrenamientos de Hoy</h3>
+            <Card className="p-4 sm:p-6 shadow-card">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Entrenamientos de Hoy</h3>
               {todayWorkouts.length === 0 ? (
                 <p className="text-muted-foreground">No hay entrenamientos programados para hoy</p>
               ) : (
@@ -205,8 +205,8 @@ const Dashboard = () => {
 
           <RoutineManager />
 
-          <Card className="p-6 shadow-card bg-gradient-card">
-            <h3 className="text-xl font-semibold mb-4">Consejos del Día</h3>
+          <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Consejos del Día</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
