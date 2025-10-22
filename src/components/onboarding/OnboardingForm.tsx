@@ -276,7 +276,7 @@ const OnboardingForm = () => {
           notifications_enabled: formData.notifications ?? true,
           wearables_sync_enabled: formData.wearables || false,
           terms_accepted: formData.termsAccepted,
-          onboarding_completed: true
+          onboarding_completed: false // Será completado por la función de backend
         });
 
       if (profileError) {
@@ -305,8 +305,14 @@ const OnboardingForm = () => {
 
       // PASO 4: Asignar rutina automáticamente basada en el perfil
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("No se encontró una sesión autenticada para asignar la rutina.");
+
         const { data: routineData, error: routineError } = await supabase.functions.invoke('assign-routine', {
-          method: 'POST'
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
         });
 
         if (routineError) {
@@ -317,7 +323,7 @@ const OnboardingForm = () => {
           toast.success(`¡Cuenta creada! Se te asignó el plan: ${routineData.plan?.nombre_plan || 'personalizado'} 🎉`);
         }
       } catch (error) {
-        console.error("Error al asignar rutina:", error);
+        console.error("Error al llamar a la función de asignar rutina:", error);
         toast.warning("Cuenta creada exitosamente. Puedes configurar tu rutina desde el dashboard.");
       }
 

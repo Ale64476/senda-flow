@@ -275,30 +275,23 @@ serve(async (req) => {
     if (createdWorkouts.length > 0) {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ assigned_routine_id: createdWorkouts[0].id })
+        .update({ assigned_plan_id: selectedPlan.id, onboarding_completed: true })
         .eq('id', user.id);
 
       if (updateError) {
-        console.error('Error updating profile:', updateError);
+        console.error('Error updating profile with assigned plan:', updateError);
       }
     }
 
     console.log('Routine assigned successfully:', createdWorkouts.length, 'workouts created');
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        routine: {
-          plan_id: selectedPlan.id,
-          plan_name: selectedPlan.nombre_plan,
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Routine assigned successfully: ${selectedPlan.nombre_plan}`,
+          plan: selectedPlan,
           workouts_created: createdWorkouts.length,
-          workouts: createdWorkouts.map(w => ({
-            id: w.id,
-            name: w.name,
-            date: w.scheduled_date,
-          })),
-        },
-      }),
+        }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
