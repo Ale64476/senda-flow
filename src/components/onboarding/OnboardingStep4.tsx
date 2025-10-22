@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface OnboardingStep4Props {
   formData: any;
@@ -17,6 +19,8 @@ const trackingApps = [
 ];
 
 const OnboardingStep4 = ({ formData, updateFormData }: OnboardingStep4Props) => {
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
   // Solo mostrar esta pantalla si el género es femenino
   if (formData.gender !== "femenino") {
     return (
@@ -52,54 +56,26 @@ const OnboardingStep4 = ({ formData, updateFormData }: OnboardingStep4Props) => 
           </div>
           <Switch
             id="menstrualTracking"
-            checked={formData.menstrualTracking || false}
-            onCheckedChange={(checked) => updateFormData({ menstrualTracking: checked })}
+            checked={false}
+            onCheckedChange={() => setUpgradeModalOpen(true)}
           />
         </div>
 
-        {formData.menstrualTracking && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="trackingApp">App de seguimiento</Label>
-              <Select
-                value={formData.trackingApp || ""}
-                onValueChange={(value) => updateFormData({ trackingApp: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona tu app" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trackingApps.map((app) => (
-                    <SelectItem key={app.id} value={app.id}>
-                      {app.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="autoSync"
-                checked={formData.autoSync || false}
-                onCheckedChange={(checked) => updateFormData({ autoSync: checked })}
-              />
-              <Label htmlFor="autoSync" className="cursor-pointer font-normal">
-                Sincronizar datos automáticamente
-              </Label>
-            </div>
-
-            <div className="bg-primary/10 p-4 rounded-lg space-y-2">
-              <p className="text-sm font-medium">La IA usará esta información para:</p>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Ajustar volumen de entrenamiento según fase del ciclo</li>
-                <li>Adaptar recomendaciones de nutrición</li>
-                <li>Evitar sobrecarga durante días de baja energía</li>
-              </ul>
-            </div>
-          </>
-        )}
       </div>
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        featureTitle="Seguimiento Menstrual"
+        featureDescription="Optimiza tu entrenamiento según tu ciclo menstrual con ajustes automáticos de la IA"
+        features={[
+          "Sincronización automática con apps de seguimiento menstrual",
+          "Ajuste del volumen de entrenamiento según fase del ciclo",
+          "Recomendaciones de nutrición personalizadas por fase",
+          "Predicciones de energía y rendimiento",
+          "Alertas inteligentes para días de menor rendimiento"
+        ]}
+      />
     </div>
   );
 };

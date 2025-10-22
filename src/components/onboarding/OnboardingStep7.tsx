@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface OnboardingStep7Props {
   formData: any;
@@ -9,6 +11,8 @@ interface OnboardingStep7Props {
 }
 
 const OnboardingStep7 = ({ formData, updateFormData }: OnboardingStep7Props) => {
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-2">
@@ -61,8 +65,8 @@ const OnboardingStep7 = ({ formData, updateFormData }: OnboardingStep7Props) => 
           </div>
           <Switch
             id="wearables"
-            checked={formData.wearables || false}
-            onCheckedChange={(checked) => updateFormData({ wearables: checked })}
+            checked={false}
+            onCheckedChange={() => setUpgradeModalOpen(true)}
           />
         </div>
 
@@ -101,6 +105,20 @@ const OnboardingStep7 = ({ formData, updateFormData }: OnboardingStep7Props) => 
           </p>
         </div>
       </div>
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        featureTitle="Sincronización con Wearables"
+        featureDescription="Conecta tus dispositivos y obtén seguimiento automático de tu actividad física"
+        features={[
+          "Sincronización con Apple Health, Google Fit y Fitbit",
+          "Importación automática de pasos, calorías y ritmo cardíaco",
+          "Ajuste dinámico de objetivos según tu actividad diaria",
+          "Detección automática de entrenamientos realizados",
+          "Análisis de patrones de sueño y recuperación"
+        ]}
+      />
     </div>
   );
 };
