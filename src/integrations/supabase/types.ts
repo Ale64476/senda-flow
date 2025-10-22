@@ -24,11 +24,11 @@ export type Database = {
           grupo_muscular: string
           id: string
           imagen: string | null
-          lugar: string
+          lugar: string | null
           maquina_gym: string | null
           nivel: string
           nombre: string
-          objetivo: string
+          objetivo: string | null
           repeticiones_sugeridas: number | null
           series_sugeridas: number | null
           tipo_entrenamiento: string
@@ -43,11 +43,11 @@ export type Database = {
           grupo_muscular: string
           id: string
           imagen?: string | null
-          lugar: string
+          lugar?: string | null
           maquina_gym?: string | null
           nivel: string
           nombre: string
-          objetivo: string
+          objetivo?: string | null
           repeticiones_sugeridas?: number | null
           series_sugeridas?: number | null
           tipo_entrenamiento: string
@@ -62,11 +62,11 @@ export type Database = {
           grupo_muscular?: string
           id?: string
           imagen?: string | null
-          lugar?: string
+          lugar?: string | null
           maquina_gym?: string | null
           nivel?: string
           nombre?: string
-          objetivo?: string
+          objetivo?: string | null
           repeticiones_sugeridas?: number | null
           series_sugeridas?: number | null
           tipo_entrenamiento?: string
