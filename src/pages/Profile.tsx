@@ -19,6 +19,7 @@ const Profile = () => {
   const [userRole, setUserRole] = useState<string>("user");
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [resetOnFirstDayClick, setResetOnFirstDayClick] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     gender: "femenino",
@@ -233,13 +234,13 @@ const Profile = () => {
           <Card className="p-4 sm:p-6 shadow-card">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-semibold">Información Personal</h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                disabled={isEditing}
-              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setIsEditing(true); setResetOnFirstDayClick(true); }}
+                  disabled={isEditing}
+                >
                 <Pencil className="w-4 h-4 mr-2" />
                 Editar
               </Button>
@@ -298,11 +299,16 @@ const Profile = () => {
                       size="sm"
                       onClick={() => {
                         if (!isEditing) return;
-                        const currentDays = [...formData.available_weekdays];
-                        const newDays = currentDays.includes(day.value)
-                          ? currentDays.filter(d => d !== day.value)
-                          : [...currentDays, day.value];
-                        // Asegurar que no haya duplicados
+                        let newDays: string[];
+                        if (resetOnFirstDayClick) {
+                          newDays = [day.value];
+                          setResetOnFirstDayClick(false);
+                        } else {
+                          const currentDays = [...formData.available_weekdays];
+                          newDays = currentDays.includes(day.value)
+                            ? currentDays.filter(d => d !== day.value)
+                            : [...currentDays, day.value];
+                        }
                         const uniqueDays = [...new Set(newDays)];
                         setFormData({ ...formData, available_weekdays: uniqueDays });
                       }}
