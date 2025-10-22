@@ -6,11 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { RoutineManager } from "@/components/RoutineManager";
-import { toast } from "sonner";
+import useEmblaCarousel from "embla-carousel-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -18,6 +18,9 @@ const Dashboard = () => {
   const [todayMacros, setTodayMacros] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [todayWorkouts, setTodayWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ axis: 'y', loop: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,7 +56,6 @@ const Dashboard = () => {
           setTodayMacros(totals);
         }
 
-        // Fetch today's scheduled workouts
         const { data: workoutsData } = await supabase
           .from("workouts")
           .select("*, workout_exercises(*)")
@@ -62,7 +64,6 @@ const Dashboard = () => {
 
         setTodayWorkouts(workoutsData || []);
 
-        // If no workouts today but user has assigned routine, show that
         if ((!workoutsData || workoutsData.length === 0) && profileData?.assigned_routine_id) {
           const { data: assignedWorkout } = await supabase
             .from("workouts")
@@ -71,7 +72,6 @@ const Dashboard = () => {
             .single();
 
           if (assignedWorkout) {
-            // Show assigned routine as today's workout
             setTodayWorkouts([assignedWorkout]);
           }
         }
@@ -84,6 +84,21 @@ const Dashboard = () => {
 
     fetchData();
   }, [user]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
+    };
+
+    emblaApi.on('select', onSelect);
+    onSelect();
+
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi]);
 
   if (loading) {
     return (
@@ -105,145 +120,316 @@ const Dashboard = () => {
     ? (todayMacros.protein / profile.daily_protein_goal) * 100
     : 0;
 
+  // Secciones para el carrusel móvil
+  const sections = [
+    // Sección 1: Stats + Progreso
+    <div key="stats" className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard
+          title="Calorías Hoy"
+          value={todayMacros.calories}
+          subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
+          icon={Flame}
+          variant="primary"
+        />
+        <StatCard
+          title="Proteína"
+          value={`${todayMacros.protein}g`}
+          subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
+          icon={Target}
+          variant="secondary"
+        />
+        <StatCard
+          title="Entrenamientos Hoy"
+          value={todayWorkouts.length}
+          subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
+          icon={Activity}
+          variant="accent"
+        />
+        <StatCard
+          title="Nivel"
+          value={profile?.fitness_level || "Principiante"}
+          subtitle={profile?.fitness_goal || "Mantener peso"}
+          icon={TrendingUp}
+        />
+      </div>
+      <Card className="p-4 shadow-card">
+        <h3 className="text-lg font-semibold mb-3">Progreso de Calorías</h3>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Consumidas</span>
+              <span className="text-sm text-muted-foreground">
+                {todayMacros.calories} / {profile?.daily_calorie_goal || 2000} kcal
+              </span>
+            </div>
+            <Progress value={Math.min(caloriesProgress, 100)} className="h-3" />
+          </div>
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Proteína</span>
+              <span className="text-sm text-muted-foreground">
+                {todayMacros.protein}g / {profile?.daily_protein_goal || 150}g
+              </span>
+            </div>
+            <Progress value={Math.min(proteinProgress, 100)} className="h-3" />
+          </div>
+        </div>
+      </Card>
+    </div>,
+
+    // Sección 2: Entrenamientos de Hoy
+    <Card key="workouts" className="p-4 shadow-card h-full flex flex-col">
+      <h3 className="text-lg font-semibold mb-3">Entrenamientos de Hoy</h3>
+      {todayWorkouts.length === 0 ? (
+        <p className="text-muted-foreground">No hay entrenamientos programados para hoy</p>
+      ) : (
+        <div className="space-y-3 flex-1 overflow-auto">
+          {todayWorkouts.map((workout) => (
+            <div
+              key={workout.id}
+              className="flex items-center justify-between p-3 bg-muted rounded-lg"
+            >
+              <div>
+                <p className="font-medium">{workout.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {workout.duration_minutes} min · {workout.estimated_calories} kcal
+                </p>
+              </div>
+              {workout.completed && (
+                <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                  Completado
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>,
+
+    // Sección 3: Gestor de Rutinas
+    <div key="routine-manager">
+      <RoutineManager />
+    </div>,
+
+    // Sección 4: Consejos del Día
+    <Card key="tips" className="p-4 shadow-card bg-gradient-card h-full flex flex-col">
+      <h3 className="text-lg font-semibold mb-3">Consejos del Día</h3>
+      <div className="space-y-3 flex-1">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            💧
+          </div>
+          <div>
+            <p className="font-medium">Mantente hidratada</p>
+            <p className="text-sm text-muted-foreground">
+              Bebe al menos 2 litros de agua durante el día
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            🥗
+          </div>
+          <div>
+            <p className="font-medium">Alimentación balanceada</p>
+            <p className="text-sm text-muted-foreground">
+              Incluye proteínas, carbohidratos y grasas saludables en cada comida
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            😊
+          </div>
+          <div>
+            <p className="font-medium">Bienestar emocional</p>
+            <p className="text-sm text-muted-foreground">
+              Dedica 10 minutos al día para meditar o relajarte
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>,
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">
-              ¡Hola, {profile?.full_name || "Usuario"}!
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
-              {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
-            </p>
-          </div>
+        {/* Header */}
+        <div className="max-w-7xl mx-auto mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">
+            ¡Hola, {profile?.full_name || "Usuario"}!
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
+            {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            <StatCard
-              title="Calorías Hoy"
-              value={todayMacros.calories}
-              subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
-              icon={Flame}
-              variant="primary"
-            />
-            <StatCard
-              title="Proteína"
-              value={`${todayMacros.protein}g`}
-              subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
-              icon={Target}
-              variant="secondary"
-            />
-            <StatCard
-              title="Entrenamientos Hoy"
-              value={todayWorkouts.length}
-              subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
-              icon={Activity}
-              variant="accent"
-            />
-            <StatCard
-              title="Nivel"
-              value={profile?.fitness_level || "Principiante"}
-              subtitle={profile?.fitness_goal || "Mantener peso"}
-              icon={TrendingUp}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <Card className="p-4 sm:p-6 shadow-card">
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Progreso de Calorías</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Consumidas</span>
-                    <span className="text-sm text-muted-foreground">
-                      {todayMacros.calories} / {profile?.daily_calorie_goal || 2000} kcal
-                    </span>
-                  </div>
-                  <Progress value={Math.min(caloriesProgress, 100)} className="h-3" />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Proteína</span>
-                    <span className="text-sm text-muted-foreground">
-                      {todayMacros.protein}g / {profile?.daily_protein_goal || 150}g
-                    </span>
-                  </div>
-                  <Progress value={Math.min(proteinProgress, 100)} className="h-3" />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 sm:p-6 shadow-card">
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Entrenamientos de Hoy</h3>
-              {todayWorkouts.length === 0 ? (
-                <p className="text-muted-foreground">No hay entrenamientos programados para hoy</p>
-              ) : (
-                <div className="space-y-3">
-                  {todayWorkouts.map((workout) => (
-                    <div
-                      key={workout.id}
-                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{workout.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {workout.duration_minutes} min · {workout.estimated_calories} kcal
-                        </p>
-                      </div>
-                      {workout.completed && (
-                        <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                          Completado
-                        </span>
-                      )}
+        {/* Vista móvil: Carrusel */}
+        {isMobile ? (
+          <div className="relative h-[calc(100vh-12rem)]">
+            <div className="overflow-hidden h-full" ref={emblaRef}>
+              <div className="flex flex-col h-full">
+                {sections.map((section, index) => (
+                  <div
+                    key={index}
+                    className="flex-[0_0_100%] min-h-0 px-1 flex items-center"
+                  >
+                    <div className="w-full animate-fade-in">
+                      {section}
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
-
-          <RoutineManager />
-
-          <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
-            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Consejos del Día</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  💧
-                </div>
-                <div>
-                  <p className="font-medium">Mantente hidratada</p>
-                  <p className="text-sm text-muted-foreground">
-                    Bebe al menos 2 litros de agua durante el día
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  🥗
-                </div>
-                <div>
-                  <p className="font-medium">Alimentación balanceada</p>
-                  <p className="text-sm text-muted-foreground">
-                    Incluye proteínas, carbohidratos y grasas saludables en cada comida
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  😊
-                </div>
-                <div>
-                  <p className="font-medium">Bienestar emocional</p>
-                  <p className="text-sm text-muted-foreground">
-                    Dedica 10 minutos al día para meditar o relajarte
-                  </p>
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </Card>
-        </div>
+
+            {/* Indicadores de página */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {sections.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  className={`h-2 rounded-full transition-all ${
+                    index === selectedIndex
+                      ? 'w-8 bg-primary'
+                      : 'w-2 bg-muted-foreground/30'
+                  }`}
+                  aria-label={`Ir a sección ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Vista desktop: Layout normal */
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              <StatCard
+                title="Calorías Hoy"
+                value={todayMacros.calories}
+                subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
+                icon={Flame}
+                variant="primary"
+              />
+              <StatCard
+                title="Proteína"
+                value={`${todayMacros.protein}g`}
+                subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
+                icon={Target}
+                variant="secondary"
+              />
+              <StatCard
+                title="Entrenamientos Hoy"
+                value={todayWorkouts.length}
+                subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
+                icon={Activity}
+                variant="accent"
+              />
+              <StatCard
+                title="Nivel"
+                value={profile?.fitness_level || "Principiante"}
+                subtitle={profile?.fitness_goal || "Mantener peso"}
+                icon={TrendingUp}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <Card className="p-4 sm:p-6 shadow-card">
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Progreso de Calorías</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">Consumidas</span>
+                      <span className="text-sm text-muted-foreground">
+                        {todayMacros.calories} / {profile?.daily_calorie_goal || 2000} kcal
+                      </span>
+                    </div>
+                    <Progress value={Math.min(caloriesProgress, 100)} className="h-3" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">Proteína</span>
+                      <span className="text-sm text-muted-foreground">
+                        {todayMacros.protein}g / {profile?.daily_protein_goal || 150}g
+                      </span>
+                    </div>
+                    <Progress value={Math.min(proteinProgress, 100)} className="h-3" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 sm:p-6 shadow-card">
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Entrenamientos de Hoy</h3>
+                {todayWorkouts.length === 0 ? (
+                  <p className="text-muted-foreground">No hay entrenamientos programados para hoy</p>
+                ) : (
+                  <div className="space-y-3">
+                    {todayWorkouts.map((workout) => (
+                      <div
+                        key={workout.id}
+                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{workout.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {workout.duration_minutes} min · {workout.estimated_calories} kcal
+                          </p>
+                        </div>
+                        {workout.completed && (
+                          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                            Completado
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            <RoutineManager />
+
+            <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Consejos del Día</h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    💧
+                  </div>
+                  <div>
+                    <p className="font-medium">Mantente hidratada</p>
+                    <p className="text-sm text-muted-foreground">
+                      Bebe al menos 2 litros de agua durante el día
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    🥗
+                  </div>
+                  <div>
+                    <p className="font-medium">Alimentación balanceada</p>
+                    <p className="text-sm text-muted-foreground">
+                      Incluye proteínas, carbohidratos y grasas saludables en cada comida
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    😊
+                  </div>
+                  <div>
+                    <p className="font-medium">Bienestar emocional</p>
+                    <p className="text-sm text-muted-foreground">
+                      Dedica 10 minutos al día para meditar o relajarte
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
