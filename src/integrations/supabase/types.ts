@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercises: {
+        Row: {
+          calorias_por_repeticion: number | null
+          created_at: string
+          descripcion: string
+          duracion_promedio_segundos: number | null
+          equipamiento: string | null
+          grupo_muscular: string
+          id: string
+          imagen: string | null
+          lugar: string
+          maquina_gym: string | null
+          nivel: string
+          nombre: string
+          objetivo: string
+          repeticiones_sugeridas: number | null
+          series_sugeridas: number | null
+          tipo_entrenamiento: string
+          video: string | null
+        }
+        Insert: {
+          calorias_por_repeticion?: number | null
+          created_at?: string
+          descripcion: string
+          duracion_promedio_segundos?: number | null
+          equipamiento?: string | null
+          grupo_muscular: string
+          id: string
+          imagen?: string | null
+          lugar: string
+          maquina_gym?: string | null
+          nivel: string
+          nombre: string
+          objetivo: string
+          repeticiones_sugeridas?: number | null
+          series_sugeridas?: number | null
+          tipo_entrenamiento: string
+          video?: string | null
+        }
+        Update: {
+          calorias_por_repeticion?: number | null
+          created_at?: string
+          descripcion?: string
+          duracion_promedio_segundos?: number | null
+          equipamiento?: string | null
+          grupo_muscular?: string
+          id?: string
+          imagen?: string | null
+          lugar?: string
+          maquina_gym?: string | null
+          nivel?: string
+          nombre?: string
+          objetivo?: string
+          repeticiones_sugeridas?: number | null
+          series_sugeridas?: number | null
+          tipo_entrenamiento?: string
+          video?: string | null
+        }
+        Relationships: []
+      }
       foods: {
         Row: {
           calorias: number
@@ -131,6 +191,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      predesigned_plans: {
+        Row: {
+          created_at: string
+          descripcion_plan: string
+          dias_semana: number
+          ejercicios_ids_ordenados: Json
+          lugar: string
+          nivel: string
+          nombre_plan: string
+          objetivo: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          descripcion_plan: string
+          dias_semana: number
+          ejercicios_ids_ordenados: Json
+          lugar: string
+          nivel: string
+          nombre_plan: string
+          objetivo: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          descripcion_plan?: string
+          dias_semana?: number
+          ejercicios_ids_ordenados?: Json
+          lugar?: string
+          nivel?: string
+          nombre_plan?: string
+          objetivo?: string
+          plan_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
