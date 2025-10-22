@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { StatCard } from "@/components/StatCard";
 import { Flame, Pizza, Beef, Droplet } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 const mealTypes = [
   { value: "desayuno", label: "Desayuno" },
@@ -27,6 +29,10 @@ const Macros = () => {
   const [meals, setMeals] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [foods, setFoods] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFood, setSelectedFood] = useState<any>(null);
+  const [portion, setPortion] = useState("1");
   const [formData, setFormData] = useState({
     meal_type: "desayuno",
     name: "",
@@ -38,7 +44,17 @@ const Macros = () => {
 
   useEffect(() => {
     fetchData();
+    fetchFoods();
   }, [user]);
+
+  const fetchFoods = async () => {
+    const { data } = await supabase
+      .from("foods")
+      .select("*")
+      .order("nombre", { ascending: true });
+    
+    setFoods(data || []);
+  };
 
   const fetchData = async () => {
     if (!user) return;
@@ -82,6 +98,42 @@ const Macros = () => {
     }
 
     toast.success("Comida registrada");
+    resetForm();
+    fetchData();
+  };
+
+  const handleSubmitFromDatabase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedFood) {
+      toast.error("Selecciona un alimento");
+      return;
+    }
+
+    const portionMultiplier = parseFloat(portion);
+    
+    const { error } = await supabase.from("meals").insert([{
+      user_id: user?.id!,
+      meal_type: formData.meal_type as any,
+      name: `${selectedFood.nombre} (${portion} × ${selectedFood.racion}${selectedFood.unidad})`,
+      calories: Math.round(selectedFood.calorias * portionMultiplier),
+      protein: Math.round(selectedFood.proteinas * portionMultiplier),
+      carbs: Math.round(selectedFood.carbohidratos * portionMultiplier),
+      fat: Math.round(selectedFood.grasas * portionMultiplier),
+      date: format(new Date(), "yyyy-MM-dd"),
+    }]);
+
+    if (error) {
+      toast.error("Error al registrar comida");
+      return;
+    }
+
+    toast.success("Comida registrada");
+    resetForm();
+    fetchData();
+  };
+
+  const resetForm = () => {
     setOpen(false);
     setFormData({
       meal_type: "desayuno",
@@ -91,7 +143,9 @@ const Macros = () => {
       carbs: "",
       fat: "",
     });
-    fetchData();
+    setSelectedFood(null);
+    setPortion("1");
+    setSearchQuery("");
   };
 
   const handleDelete = async (id: string) => {
@@ -140,11 +194,12 @@ const Macros = () => {
                   Registrar Comida
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Registrar Comida</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Tipo de Comida</Label>
                     <Select
@@ -165,63 +220,179 @@ const Macros = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Nombre del Alimento</Label>
-                    <Input
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Calorías</Label>
-                      <Input
-                        type="number"
-                        value={formData.calories}
-                        onChange={(e) =>
-                          setFormData({ ...formData, calories: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Proteína (g)</Label>
-                      <Input
-                        type="number"
-                        value={formData.protein}
-                        onChange={(e) =>
-                          setFormData({ ...formData, protein: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Carbohidratos (g)</Label>
-                      <Input
-                        type="number"
-                        value={formData.carbs}
-                        onChange={(e) =>
-                          setFormData({ ...formData, carbs: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Grasas (g)</Label>
-                      <Input
-                        type="number"
-                        value={formData.fat}
-                        onChange={(e) =>
-                          setFormData({ ...formData, fat: e.target.value })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full">
-                    Registrar
-                  </Button>
-                </form>
+
+                  <Tabs defaultValue="database" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="database">
+                        <Search className="w-4 h-4 mr-2" />
+                        Base de Datos
+                      </TabsTrigger>
+                      <TabsTrigger value="manual">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Manual
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="database" className="space-y-4">
+                      <form onSubmit={handleSubmitFromDatabase} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Buscar Alimento</Label>
+                          <Command className="rounded-lg border">
+                            <CommandInput 
+                              placeholder="Busca un alimento..." 
+                              value={searchQuery}
+                              onValueChange={setSearchQuery}
+                            />
+                            <CommandList className="max-h-[200px]">
+                              <CommandEmpty>No se encontraron alimentos.</CommandEmpty>
+                              <CommandGroup>
+                                {foods
+                                  .filter((food) =>
+                                    food.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+                                  )
+                                  .slice(0, 10)
+                                  .map((food) => (
+                                    <CommandItem
+                                      key={food.id}
+                                      value={food.nombre}
+                                      onSelect={() => {
+                                        setSelectedFood(food);
+                                      }}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{food.nombre}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {food.calorias} kcal · {food.proteinas}g prot · {food.carbohidratos}g carbs · {food.grasas}g grasa
+                                          <span className="ml-2">({food.racion}{food.unidad})</span>
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </div>
+
+                        {selectedFood && (
+                          <Card className="p-4 bg-muted">
+                            <div className="space-y-3">
+                              <div>
+                                <p className="font-semibold text-lg">{selectedFood.nombre}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Porción base: {selectedFood.racion}{selectedFood.unidad}
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Cantidad de Porciones</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  min="0.1"
+                                  value={portion}
+                                  onChange={(e) => setPortion(e.target.value)}
+                                  placeholder="1"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Calorías</p>
+                                  <p className="text-lg font-bold">
+                                    {Math.round(selectedFood.calorias * parseFloat(portion || "1"))} kcal
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Proteína</p>
+                                  <p className="text-lg font-bold">
+                                    {Math.round(selectedFood.proteinas * parseFloat(portion || "1"))}g
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Carbohidratos</p>
+                                  <p className="text-lg font-bold">
+                                    {Math.round(selectedFood.carbohidratos * parseFloat(portion || "1"))}g
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Grasas</p>
+                                  <p className="text-lg font-bold">
+                                    {Math.round(selectedFood.grasas * parseFloat(portion || "1"))}g
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        )}
+
+                        <Button type="submit" className="w-full" disabled={!selectedFood}>
+                          Registrar Alimento
+                        </Button>
+                      </form>
+                    </TabsContent>
+
+                    <TabsContent value="manual" className="space-y-4">
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Nombre del Alimento</Label>
+                          <Input
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData({ ...formData, name: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Calorías</Label>
+                            <Input
+                              type="number"
+                              value={formData.calories}
+                              onChange={(e) =>
+                                setFormData({ ...formData, calories: e.target.value })
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Proteína (g)</Label>
+                            <Input
+                              type="number"
+                              value={formData.protein}
+                              onChange={(e) =>
+                                setFormData({ ...formData, protein: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Carbohidratos (g)</Label>
+                            <Input
+                              type="number"
+                              value={formData.carbs}
+                              onChange={(e) =>
+                                setFormData({ ...formData, carbs: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Grasas (g)</Label>
+                            <Input
+                              type="number"
+                              value={formData.fat}
+                              onChange={(e) =>
+                                setFormData({ ...formData, fat: e.target.value })
+                              }
+                            />
+                          </div>
+                        </div>
+                        <Button type="submit" className="w-full">
+                          Registrar
+                        </Button>
+                      </form>
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
