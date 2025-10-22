@@ -37,18 +37,24 @@ const Profile = () => {
   const fetchProfile = async () => {
     if (!user) return;
 
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (profileError) {
+      console.error("Error loading profile:", profileError);
+      toast.error("Error al cargar el perfil");
+      return;
+    }
 
     if (profileData) {
       setProfile(profileData);
       setFormData({
         full_name: profileData.full_name || "",
-        fitness_level: (profileData.fitness_level || "principiante") as any,
-        fitness_goal: (profileData.fitness_goal || "mantener_peso") as any,
+        fitness_level: profileData.fitness_level || "principiante",
+        fitness_goal: profileData.fitness_goal || "mantener_peso",
         weight: profileData.weight?.toString() || "",
         height: profileData.height?.toString() || "",
         age: profileData.age?.toString() || "",
@@ -63,7 +69,7 @@ const Profile = () => {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (roleData) {
       setUserRole(roleData.role);
@@ -78,8 +84,8 @@ const Profile = () => {
       .from("profiles")
       .update({
         full_name: formData.full_name,
-        fitness_level: formData.fitness_level as any,
-        fitness_goal: formData.fitness_goal as any,
+        fitness_level: formData.fitness_level as "principiante" | "intermedio" | "avanzado",
+        fitness_goal: formData.fitness_goal as "bajar_peso" | "aumentar_masa" | "mantener_peso" | "tonificar" | "mejorar_resistencia" | "ganar_masa" | "bajar_grasa" | "rendimiento",
         weight: parseFloat(formData.weight) || null,
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
@@ -93,7 +99,8 @@ const Profile = () => {
     setLoading(false);
 
     if (error) {
-      toast.error("Error al actualizar perfil");
+      console.error("Error updating profile:", error);
+      toast.error("Error al actualizar perfil: " + error.message);
       return;
     }
 
@@ -177,7 +184,7 @@ const Profile = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Selecciona tu nivel" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="principiante">Principiante</SelectItem>
@@ -196,7 +203,7 @@ const Profile = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Selecciona tu objetivo" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="bajar_peso">Bajar de peso</SelectItem>
