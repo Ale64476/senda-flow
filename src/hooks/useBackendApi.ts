@@ -8,6 +8,9 @@ import {
   getRoutines,
   getTodaysWorkouts,
   getWorkoutsByDate,
+  getAllWorkouts,
+  completeWorkout,
+  getPredesignedPlans,
   type ProgressData
 } from '@/lib/api/backend';
 
@@ -119,5 +122,53 @@ export const useRoutines = (options?: {
     queryKey: ['routines', options],
     queryFn: () => getRoutines(options),
     staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+/**
+ * Hook to get all workouts for the current user (complete routine)
+ */
+export const useAllWorkouts = (params?: {
+  include_completed?: boolean;
+  tipo?: 'automatico' | 'manual';
+}) => {
+  return useQuery({
+    queryKey: ['all-workouts', params],
+    queryFn: () => getAllWorkouts(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+/**
+ * Hook to mark a workout as completed
+ */
+export const useCompleteWorkout = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ workoutId, completed }: { workoutId: string; completed?: boolean }) => 
+      completeWorkout(workoutId, completed),
+    onSuccess: () => {
+      // Invalidate workout queries to refetch
+      queryClient.invalidateQueries({ queryKey: ['all-workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['todays-workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts-by-date'] });
+    },
+  });
+};
+
+/**
+ * Hook to get predesigned plans
+ */
+export const usePredesignedPlans = (filters?: {
+  objetivo?: string;
+  nivel?: string;
+  lugar?: string;
+  dias_semana?: number;
+}) => {
+  return useQuery({
+    queryKey: ['predesigned-plans', filters],
+    queryFn: () => getPredesignedPlans(filters),
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 };

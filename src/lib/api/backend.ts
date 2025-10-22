@@ -209,3 +209,82 @@ export async function getRoutines(options?: {
 
   return response.json();
 }
+
+/**
+ * Get all workouts for the current user (complete routine)
+ */
+export async function getAllWorkouts(params?: {
+  include_completed?: boolean;
+  tipo?: 'automatico' | 'manual';
+}): Promise<{ workouts: any[]; stats: any }> {
+  const queryParams = new URLSearchParams();
+  if (params?.include_completed !== undefined) {
+    queryParams.append('include_completed', params.include_completed.toString());
+  }
+  if (params?.tipo) {
+    queryParams.append('tipo', params.tipo);
+  }
+
+  const url = `${SUPABASE_URL}/functions/v1/get-all-workouts${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('No session');
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch all workouts: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Mark a workout as completed or incomplete
+ */
+export async function completeWorkout(
+  workoutId: string, 
+  completed: boolean = true
+): Promise<{ success: boolean; workout: any }> {
+  const { data, error } = await supabase.functions.invoke('complete-workout', {
+    body: { workout_id: workoutId, completed }
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get all predesigned plans available
+ */
+export async function getPredesignedPlans(filters?: {
+  objetivo?: string;
+  nivel?: string;
+  lugar?: string;
+  dias_semana?: number;
+}): Promise<{ plans: any[]; count: number }> {
+  const params = new URLSearchParams();
+  if (filters?.objetivo) params.append('objetivo', filters.objetivo);
+  if (filters?.nivel) params.append('nivel', filters.nivel);
+  if (filters?.lugar) params.append('lugar', filters.lugar);
+  if (filters?.dias_semana) params.append('dias_semana', filters.dias_semana.toString());
+
+  const url = `${SUPABASE_URL}/functions/v1/get-predesigned-plans${params.toString() ? '?' + params.toString() : ''}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch predesigned plans: ${response.statusText}`);
+  }
+
+  return response.json();
+}
