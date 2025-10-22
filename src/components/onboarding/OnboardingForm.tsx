@@ -131,6 +131,14 @@ const OnboardingForm = () => {
           toast.error("Por favor indica la duración de tus sesiones");
           return false;
         }
+        if (!formData.availableWeekdays || formData.availableWeekdays.length === 0) {
+          toast.error("Por favor selecciona los días específicos disponibles para entrenar");
+          return false;
+        }
+        if (formData.availableWeekdays.length < formData.availableDays) {
+          toast.error(`Debes seleccionar al menos ${formData.availableDays} días específicos`);
+          return false;
+        }
         break;
       case 3:
         if (!formData.healthConditions || formData.healthConditions.length === 0) {
@@ -244,6 +252,7 @@ const OnboardingForm = () => {
           primary_goal: formData.primaryGoal,
           training_types: formData.trainingTypes || [],
           available_days_per_week: formData.availableDays,
+          available_weekdays: formData.availableWeekdays || [],
           session_duration_minutes: formData.sessionDuration,
           health_conditions: formData.healthConditions || [],
           current_medications: formData.medications,

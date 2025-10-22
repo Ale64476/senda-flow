@@ -121,6 +121,41 @@ const OnboardingStep2 = ({ formData, updateFormData }: OnboardingStep2Props) => 
             />
           </div>
         </div>
+
+        <div className="space-y-3">
+          <Label>Días específicos disponibles *</Label>
+          <p className="text-xs text-muted-foreground">
+            Selecciona los días de la semana que tienes disponibles para entrenar
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 1, label: "Lunes" },
+              { id: 2, label: "Martes" },
+              { id: 3, label: "Miércoles" },
+              { id: 4, label: "Jueves" },
+              { id: 5, label: "Viernes" },
+              { id: 6, label: "Sábado" },
+              { id: 7, label: "Domingo" }
+            ].map((day) => (
+              <div key={day.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`day-${day.id}`}
+                  checked={formData.availableWeekdays?.includes(day.id) || false}
+                  onCheckedChange={() => {
+                    const current = formData.availableWeekdays || [];
+                    const updated = current.includes(day.id)
+                      ? current.filter((d: number) => d !== day.id)
+                      : [...current, day.id].sort((a: number, b: number) => a - b);
+                    updateFormData({ availableWeekdays: updated });
+                  }}
+                />
+                <Label htmlFor={`day-${day.id}`} className="cursor-pointer font-normal">
+                  {day.label}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
