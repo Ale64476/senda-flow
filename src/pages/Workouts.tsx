@@ -14,6 +14,7 @@ import { Plus, CheckCircle2, Circle, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddExerciseDialog } from "@/components/AddExerciseDialog";
+import { useCompleteWorkout } from "@/hooks/useBackendApi";
 
 interface ConfiguredExercise {
   exercise: {
@@ -34,6 +35,7 @@ const Workouts = () => {
   const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
   const [configuredExercises, setConfiguredExercises] = useState<ConfiguredExercise[]>([]);
   const [otherDaysOpen, setOtherDaysOpen] = useState(false);
+  const completeWorkoutMutation = useCompleteWorkout();
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -156,21 +158,17 @@ const Workouts = () => {
   };
 
   const toggleComplete = async (id: string, completed: boolean) => {
-    const { error } = await supabase
-      .from("workouts")
-      .update({
+    try {
+      await completeWorkoutMutation.mutateAsync({
+        workoutId: id,
         completed: !completed,
-        completed_at: !completed ? new Date().toISOString() : null,
-      })
-      .eq("id", id);
-
-    if (error) {
+      });
+      
+      toast.success(!completed ? "¡Entrenamiento completado!" : "Marcado como pendiente");
+      fetchWorkouts();
+    } catch (error) {
       toast.error("Error al actualizar");
-      return;
     }
-
-    toast.success(!completed ? "¡Entrenamiento completado!" : "Marcado como pendiente");
-    fetchWorkouts();
   };
 
   const deleteWorkout = async (id: string) => {
