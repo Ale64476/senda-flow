@@ -14,6 +14,7 @@ interface Exercise {
   grupo_muscular: string;
   lugar: string;
   nivel: string;
+  tipo_entrenamiento: string;
   calorias_por_repeticion?: number;
 }
 
@@ -41,20 +42,21 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
   const [peso, setPeso] = useState("0");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [estimatedCalories, setEstimatedCalories] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>("");
+  const [levelFilter, setLevelFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
 
   useEffect(() => {
     fetchExercises();
     fetchUserProfile();
-  }, [location]);
+  }, []);
 
   const fetchExercises = async () => {
-    // Para exterior, mostramos ejercicios de casa (se pueden hacer afuera)
-    const filterLocation = location === "exterior" ? "casa" : location;
-    
+    // Traer TODOS los ejercicios sin filtrar por ubicación
     const { data } = await supabase
       .from("exercises")
       .select("*")
-      .eq("lugar", filterLocation)
       .order("nombre");
     
     setExercises(data || []);
@@ -107,6 +109,22 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
     }
   }, [selectedExercise, series, repeticiones, peso, userProfile]);
 
+  // Filtrar ejercicios basado en búsqueda y filtros
+  const filteredExercises = exercises.filter((exercise) => {
+    const matchesSearch = exercise.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         exercise.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMuscleGroup = !muscleGroupFilter || exercise.grupo_muscular === muscleGroupFilter;
+    const matchesLevel = !levelFilter || exercise.nivel === levelFilter;
+    const matchesType = !typeFilter || exercise.tipo_entrenamiento === typeFilter;
+    
+    return matchesSearch && matchesMuscleGroup && matchesLevel && matchesType;
+  });
+
+  // Obtener valores únicos para los filtros
+  const uniqueMuscleGroups = Array.from(new Set(exercises.map(e => e.grupo_muscular))).sort();
+  const uniqueLevels = Array.from(new Set(exercises.map(e => e.nivel))).sort();
+  const uniqueTypes = Array.from(new Set(exercises.map(e => e.tipo_entrenamiento))).sort();
+
   const handleAdd = () => {
     if (!selectedExercise) return;
 
@@ -123,22 +141,92 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
     setSeries("3");
     setRepeticiones("10");
     setPeso("0");
+    setSearchTerm("");
+    setMuscleGroupFilter("");
+    setLevelFilter("");
+    setTypeFilter("");
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Agregar Ejercicio</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Buscador */}
           <div className="space-y-2">
-            <Label>Ejercicio</Label>
+            <Label>Buscar ejercicio</Label>
+            <Input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Filtros */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Grupo muscular</Label>
+              <Select value={muscleGroupFilter} onValueChange={setMuscleGroupFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {uniqueMuscleGroups.map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nivel</Label>
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {uniqueLevels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 col-span-2">
+              <Label>Tipo de ejercicio</Label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {uniqueTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Selector de ejercicio */}
+          <div className="space-y-2">
+            <Label>Ejercicio ({filteredExercises.length} disponibles)</Label>
             <Select
               value={selectedExercise?.id}
               onValueChange={(value) => {
-                const exercise = exercises.find(e => e.id === value);
+                const exercise = filteredExercises.find(e => e.id === value);
                 setSelectedExercise(exercise || null);
               }}
             >
@@ -146,9 +234,9 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
                 <SelectValue placeholder="Seleccionar ejercicio" />
               </SelectTrigger>
               <SelectContent>
-                {exercises.map((exercise) => (
+                {filteredExercises.map((exercise) => (
                   <SelectItem key={exercise.id} value={exercise.id}>
-                    {exercise.nombre}
+                    {exercise.nombre} - {exercise.grupo_muscular}
                   </SelectItem>
                 ))}
               </SelectContent>
