@@ -117,8 +117,8 @@ export function RoutineManager() {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <ul className="space-y-1.5 p-2 border rounded-md">
-                          {exercises.map((exercise: any) => (
-                            <li key={exercise.id} className="flex items-center gap-2 text-xs sm:text-sm">
+                          {exercises.map((exercise: any, idx: number) => (
+                            <li key={`${day}-${exercise.id}-${idx}`} className="flex items-center gap-2 text-xs sm:text-sm">
                               <Dumbbell className="h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
                               <span className="flex-1 truncate">{exercise.nombre}</span>
                               <span className="text-muted-foreground text-xs shrink-0">
