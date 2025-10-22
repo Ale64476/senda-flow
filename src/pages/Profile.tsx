@@ -123,7 +123,7 @@ const Profile = () => {
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
         available_days_per_week: formData.available_weekdays.length || null,
-        available_weekdays: formData.available_weekdays.length > 0 ? formData.available_weekdays : null,
+        available_weekdays: (formData.available_weekdays.length > 0 ? formData.available_weekdays : null) as any,
         // Usar macros calculados si están disponibles, si no mantener los valores actuales
         daily_calorie_goal: calculatedMacros?.dailyCalories || parseInt(formData.daily_calorie_goal) || 2000,
         daily_protein_goal: calculatedMacros?.protein || parseInt(formData.daily_protein_goal) || 150,

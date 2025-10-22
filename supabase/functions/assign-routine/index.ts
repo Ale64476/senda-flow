@@ -70,6 +70,7 @@ serve(async (req) => {
       fitness_goal: profile.fitness_goal, 
       fitness_level: profile.fitness_level,
       available_days: profile.available_days_per_week,
+      available_weekdays: profile.available_weekdays,
       training_types: profile.training_types
     });
 
@@ -274,50 +275,128 @@ serve(async (req) => {
 
     console.log('Exercises grouped by day:', Object.keys(exercisesByDay).length, 'days');
 
+    // Mapeo de días de semana a números de día (para calcular fechas)
+    const dayMap: Record<string, number> = {
+      'L': 0,   // Lunes (offset desde lunes)
+      'M': 1,   // Martes
+      'Mi': 2,  // Miércoles
+      'J': 3,   // Jueves
+      'V': 4,   // Viernes
+      'S': 5,   // Sábado
+      'D': 6,   // Domingo
+    };
+
+    const dayNames: Record<string, string> = {
+      'L': 'Lunes',
+      'M': 'Martes',
+      'Mi': 'Miércoles',
+      'J': 'Jueves',
+      'V': 'Viernes',
+      'S': 'Sábado',
+      'D': 'Domingo',
+    };
+
     // Generate workouts for the week
     const workoutsToCreate = [];
     const days = Object.keys(exercisesByDay).map(Number).sort((a, b) => a - b);
     
-    for (const dayNum of days) {
-      const dayExercises = exercisesByDay[dayNum];
-      if (!dayExercises || dayExercises.length === 0) continue;
-
-      // Validate dayNum is within reasonable range (1-7)
-      if (dayNum < 1 || dayNum > 7) {
-        console.warn(`Invalid day number: ${dayNum}, skipping`);
-        continue;
-      }
-
-      // Calculate date for this day (starting from Monday)
-      const workoutDate = new Date(monday);
-      workoutDate.setDate(monday.getDate() + dayNum - 1);
-      const dateStr = workoutDate.toISOString().split('T')[0];
-
-      // Calculate estimated calories for this day's exercises
-      const estimatedCalories = dayExercises.reduce((total: number, pe: any) => {
-        const exercise = pe.exercises;
-        if (!exercise) return total;
-        const caloriesPerRep = exercise.calorias_por_repeticion || 0;
-        const reps = exercise.repeticiones_sugeridas || 10;
-        const sets = exercise.series_sugeridas || 3;
-        return total + (caloriesPerRep * reps * sets);
-      }, 0);
-
-      // Get muscle group from first exercise
-      const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
-
-      workoutsToCreate.push({
-        user_id: user.id,
-        name: `${selectedPlan.nombre_plan} - Día ${dayNum}`,
-        description: `${muscleGroup} - ${selectedPlan.descripcion_plan}`,
-        scheduled_date: dateStr,
-        location: normalizeLocation(selectedPlan.lugar),
-        duration_minutes: dayExercises.length * 5, // Estimate 5 min per exercise
-        estimated_calories: Math.round(estimatedCalories),
-        completed: false,
-        tipo: 'automatico',
-        exercises: dayExercises,
+    // Check if user has specific weekdays configured
+    const hasSpecificDays = profile.available_weekdays && Array.isArray(profile.available_weekdays) && profile.available_weekdays.length > 0;
+    
+    if (hasSpecificDays) {
+      // Use user's selected weekdays
+      const selectedDays = profile.available_weekdays as string[];
+      console.log('Using user-selected days:', selectedDays);
+      
+      selectedDays.forEach((dayCode: string, index: number) => {
+        const dayOffset = dayMap[dayCode];
+        if (dayOffset === undefined) return;
+        
+        // Calculate date for this day
+        const workoutDate = new Date(monday);
+        workoutDate.setDate(monday.getDate() + dayOffset);
+        
+        // Skip if date is in the past
+        if (workoutDate < today) return;
+        
+        const dateStr = workoutDate.toISOString().split('T')[0];
+        
+        // Get corresponding plan day (circular distribution)
+        const planDayIndex = index % days.length;
+        const planDay = days[planDayIndex];
+        const dayExercises = exercisesByDay[planDay];
+        
+        if (!dayExercises || dayExercises.length === 0) return;
+        
+        // Calculate estimated calories
+        const estimatedCalories = dayExercises.reduce((total: number, pe: any) => {
+          const exercise = pe.exercises;
+          if (!exercise) return total;
+          const caloriesPerRep = exercise.calorias_por_repeticion || 0;
+          const reps = exercise.repeticiones_sugeridas || 10;
+          const sets = exercise.series_sugeridas || 3;
+          return total + (caloriesPerRep * reps * sets);
+        }, 0);
+        
+        // Get muscle group from first exercise
+        const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
+        
+        workoutsToCreate.push({
+          user_id: user.id,
+          name: `${selectedPlan.nombre_plan} - ${dayNames[dayCode]}`,
+          description: `${muscleGroup} - ${selectedPlan.descripcion_plan}`,
+          scheduled_date: dateStr,
+          location: normalizeLocation(selectedPlan.lugar),
+          duration_minutes: dayExercises.length * 5,
+          estimated_calories: Math.round(estimatedCalories),
+          completed: false,
+          tipo: 'automatico',
+          exercises: dayExercises,
+        });
       });
+    } else {
+      // Original logic: use sequential days from Monday
+      for (const dayNum of days) {
+        const dayExercises = exercisesByDay[dayNum];
+        if (!dayExercises || dayExercises.length === 0) continue;
+
+        // Validate dayNum is within reasonable range (1-7)
+        if (dayNum < 1 || dayNum > 7) {
+          console.warn(`Invalid day number: ${dayNum}, skipping`);
+          continue;
+        }
+
+        // Calculate date for this day (starting from Monday)
+        const workoutDate = new Date(monday);
+        workoutDate.setDate(monday.getDate() + dayNum - 1);
+        const dateStr = workoutDate.toISOString().split('T')[0];
+
+        // Calculate estimated calories for this day's exercises
+        const estimatedCalories = dayExercises.reduce((total: number, pe: any) => {
+          const exercise = pe.exercises;
+          if (!exercise) return total;
+          const caloriesPerRep = exercise.calorias_por_repeticion || 0;
+          const reps = exercise.repeticiones_sugeridas || 10;
+          const sets = exercise.series_sugeridas || 3;
+          return total + (caloriesPerRep * reps * sets);
+        }, 0);
+
+        // Get muscle group from first exercise
+        const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
+
+        workoutsToCreate.push({
+          user_id: user.id,
+          name: `${selectedPlan.nombre_plan} - Día ${dayNum}`,
+          description: `${muscleGroup} - ${selectedPlan.descripcion_plan}`,
+          scheduled_date: dateStr,
+          location: normalizeLocation(selectedPlan.lugar),
+          duration_minutes: dayExercises.length * 5, // Estimate 5 min per exercise
+          estimated_calories: Math.round(estimatedCalories),
+          completed: false,
+          tipo: 'automatico',
+          exercises: dayExercises,
+        });
+      }
     }
 
     console.log('Creating', workoutsToCreate.length, 'workouts for the week');

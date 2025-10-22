@@ -6,6 +6,7 @@ import {
   useUserRoutine,
   useProgressStats
 } from "@/hooks/useBackendApi";
+import { planDayToShort } from "@/lib/dayMapping";
 
 /**
  * Displays user's assigned routine and progress statistics
@@ -113,7 +114,7 @@ export function RoutineManager() {
                     {Object.entries(routineData.routine.days).map(([day, exercises]: [string, any[]]) => (
                        <Collapsible key={day} className="space-y-1">
                         <CollapsibleTrigger className="w-full flex justify-between items-center p-2 bg-muted rounded-md text-left hover:bg-muted/80 transition-colors">
-                          <span className="font-medium text-sm">Día {day}: {exercises[0]?.grupo_muscular || 'Variado'}</span>
+                          <span className="font-medium text-sm">{planDayToShort(parseInt(day))}: {exercises[0]?.grupo_muscular || 'Variado'}</span>
                           <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
                         </CollapsibleTrigger>
                         <CollapsibleContent className="overflow-hidden">
