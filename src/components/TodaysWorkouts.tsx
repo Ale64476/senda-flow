@@ -94,10 +94,10 @@ export const TodaysWorkouts = () => {
           workouts.map((workout: any) => (
             <div
               key={workout.id}
-              className={`border rounded-lg p-4 transition-all ${
+              className={`rounded-xl p-4 transition-all shadow-md ${
                 workout.completed 
-                  ? 'bg-muted/50 border-accent/50' 
-                  : 'bg-card border-border hover:border-primary/50'
+                  ? 'bg-gradient-to-br from-accent/20 to-accent/10 border-2 border-accent/40' 
+                  : 'bg-card border-2 border-primary/20 hover:border-primary/40 hover:shadow-elevated'
               }`}
             >
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -109,7 +109,7 @@ export const TodaysWorkouts = () => {
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <h4 className={`font-semibold mb-1 ${workout.completed ? 'line-through text-muted-foreground' : 'text-card-foreground'}`}>
+                    <h4 className={`font-semibold text-base mb-1 ${workout.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                       {workout.name}
                     </h4>
                     {workout.description && (
