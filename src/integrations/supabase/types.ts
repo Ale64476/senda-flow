@@ -192,6 +192,48 @@ export type Database = {
           },
         ]
       }
+      plan_ejercicios: {
+        Row: {
+          created_at: string
+          dia: number
+          ejercicio_id: string
+          id: string
+          orden: number
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          dia: number
+          ejercicio_id: string
+          id?: string
+          orden: number
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          dia?: number
+          ejercicio_id?: string
+          id?: string
+          orden?: number
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_ejercicios_ejercicio_id_fkey"
+            columns: ["ejercicio_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_ejercicios_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "predesigned_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       predesigned_plans: {
         Row: {
           created_at: string
