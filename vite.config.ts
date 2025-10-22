@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: ["./src/setupTests.ts"],
     deps: {
-      inline: [/^(?!.*vitest).*$/],
+      inline: ['jsdom'],
     },
   },
 }));
