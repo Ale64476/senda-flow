@@ -399,7 +399,7 @@ export type Database = {
             foreignKeyName: "profiles_assigned_routine_id_fkey"
             columns: ["assigned_routine_id"]
             isOneToOne: false
-            referencedRelation: "workouts"
+            referencedRelation: "predesigned_plans"
             referencedColumns: ["id"]
           },
         ]

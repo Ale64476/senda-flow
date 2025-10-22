@@ -89,13 +89,23 @@ serve(async (req) => {
     console.log(`Found ${plans.length} predesigned plans`);
 
     // --- Scoring Mappings ---
+    // Normalize goal strings to match between DB and profile formats
+    const normalizeGoal = (goal: string): string => {
+      return goal
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove accents
+        .replace(/\s+/g, '_')
+        .trim();
+    };
+
     const goalMapping: Record<string, string[]> = {
-      ganar_masa: ['ganar_masa', 'fuerza'],
-      bajar_peso: ['perder_grasa', 'tonificar'],
-      perder_peso: ['perder_grasa', 'tonificar'],
-      bajar_grasa: ['perder_grasa', 'tonificar'],
-      mantener_peso: ['mantener_peso', 'tonificar', 'fuerza'],
-      tonificar: ['tonificar', 'perder_grasa'],
+      ganar_masa: ['ganar_masa', 'fuerza', 'aumentar_masa'],
+      bajar_peso: ['perder_grasa', 'tonificar', 'bajar_grasa', 'definir'],
+      perder_peso: ['perder_grasa', 'tonificar', 'bajar_grasa', 'definir'],
+      bajar_grasa: ['perder_grasa', 'tonificar', 'definir'],
+      mantener_peso: ['mantener_peso', 'mantener', 'tonificar'],
+      tonificar: ['tonificar', 'definir', 'perder_grasa'],
     };
 
     const levelMapping: Record<string, string> = {
@@ -112,15 +122,22 @@ serve(async (req) => {
       const userPrimaryGoal = profile.fitness_goal;
       const equivalentGoals = goalMapping[userPrimaryGoal] || [userPrimaryGoal];
       
+      // Normalize plan objectives (e.g., "Ganar Masa, Perder Grasa" -> ["ganar_masa", "perder_grasa"])
       const planGoals = plan.objetivo
-        .toLowerCase()
         .split(',')
-        .map((g: string) => g.trim().replace(/ /g, '_'));
+        .map((g: string) => normalizeGoal(g));
 
-      if (planGoals.includes(equivalentGoals[0])) {
+      // Check for exact match with primary goal
+      const hasExactMatch = planGoals.some(pg => equivalentGoals.includes(pg));
+      
+      if (hasExactMatch) {
         score += 70; // Perfect match on primary goal
-      } else if (equivalentGoals.length > 1 && planGoals.some(pg => pg === equivalentGoals[1])) {
-        score += 50; // Match on secondary equivalent goal
+      } else if (equivalentGoals.length > 1) {
+        // Check for secondary goals
+        const hasSecondaryMatch = planGoals.some(pg => equivalentGoals.slice(1).includes(pg));
+        if (hasSecondaryMatch) {
+          score += 50; // Match on secondary equivalent goal
+        }
       }
 
       // 2. Match fitness level (very important)
@@ -153,8 +170,14 @@ serve(async (req) => {
       }
       
       if (userTrainingTypes && Array.isArray(userTrainingTypes)) {
-        const placePreference = plan.lugar.toLowerCase();
-        if (userTrainingTypes.includes(placePreference) || userTrainingTypes.includes('mixto')) {
+        // Normalize plan location (e.g., "Gimnasio" -> "gimnasio")
+        const planLocation = normalizeGoal(plan.lugar);
+        
+        // Normalize user training types
+        const normalizedUserTypes = userTrainingTypes.map((t: string) => normalizeGoal(t));
+        
+        // Check if there's a match
+        if (normalizedUserTypes.includes(planLocation) || normalizedUserTypes.includes('mixto')) {
           score += 15;
         }
       }
@@ -165,7 +188,12 @@ serve(async (req) => {
         score += 10; // Prefer beginner plans for people with health conditions
       }
 
-      console.log(`Plan ${plan.id} (${plan.nombre_plan}) scored: ${score}`);
+      console.log(`Plan ${plan.id} (${plan.nombre_plan}) scored: ${score}`, {
+        goalMatch: hasExactMatch ? 'exact' : 'none',
+        levelMatch: plan.nivel === userLevelCode,
+        daysAvailable: profile.available_days_per_week >= plan.dias_semana,
+        locationMatch: userTrainingTypes && Array.isArray(userTrainingTypes) ? userTrainingTypes.map((t: string) => normalizeGoal(t)).includes(normalizeGoal(plan.lugar)) : false
+      });
       return { plan, score };
     });
 
