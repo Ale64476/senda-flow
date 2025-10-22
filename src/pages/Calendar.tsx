@@ -56,22 +56,26 @@ const Calendar = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Días de la semana
-                <div className="h-full pt-4 px-3 overflow-x-hidden" key="week-days">
-                  <div className="flex justify-around items-center gap-1">
+                <div className="h-full pt-4 px-2 overflow-x-hidden" key="week-days">
+                  <div className="flex justify-between items-center gap-0.5">
                     {weekDays.map((day) => {
                       const isToday = isSameDay(day, new Date());
                       const isSelected = isSameDay(day, selectedDate);
                       const dayWorkouts = getWorkoutsForDate(day);
                       const hasWorkouts = dayWorkouts.length > 0;
+                      const dayInitial = format(day, "EEEEEE", { locale: es }).toUpperCase();
 
                       return (
                         <div
                           key={day.toISOString()}
-                          className="flex flex-col items-center gap-1"
+                          className="flex flex-col items-center gap-1.5"
                           onClick={() => setSelectedDate(day)}
                         >
+                          <p className="text-[10px] font-semibold text-muted-foreground">
+                            {isToday ? "HOY" : dayInitial}
+                          </p>
                           <div
-                            className={`w-12 h-12 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all ${
+                            className={`w-11 h-11 rounded-full flex items-center justify-center cursor-pointer transition-all ${
                               isToday
                                 ? "border-primary border-2"
                                 : "border border-border"
@@ -83,10 +87,7 @@ const Calendar = () => {
                                 : "bg-background"
                             }`}
                           >
-                            <p className="text-[10px] font-medium uppercase leading-tight">
-                              {format(day, "EEE", { locale: es })}
-                            </p>
-                            <p className="text-base font-bold leading-tight">
+                            <p className="text-base font-bold">
                               {format(day, "d", { locale: es })}
                             </p>
                           </div>
