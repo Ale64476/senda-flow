@@ -112,28 +112,27 @@ const Dashboard = () => {
         <StatCard
           title="Calorías Hoy"
           value={todayMacros.calories}
-          subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
+          subtitle={`${profile?.daily_calorie_goal || 2000} kcal`}
           icon={Flame}
           variant="primary"
         />
         <StatCard
           title="Proteína"
           value={`${todayMacros.protein}g`}
-          subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
+          subtitle={`${profile?.daily_protein_goal || 150}g`}
           icon={Target}
           variant="secondary"
         />
         <StatCard
           title="Entrenamientos Hoy"
           value={todayWorkouts.length}
-          subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
+          subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
           icon={Activity}
           variant="accent"
         />
         <StatCard
           title="Nivel"
           value={profile?.fitness_level || "Principiante"}
-          subtitle={profile?.fitness_goal || "Mantener peso"}
           icon={TrendingUp}
         />
       </div>
@@ -261,28 +260,27 @@ const Dashboard = () => {
               <StatCard
                 title="Calorías Hoy"
                 value={todayMacros.calories}
-                subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
+                subtitle={`${profile?.daily_calorie_goal || 2000} kcal`}
                 icon={Flame}
                 variant="primary"
               />
               <StatCard
                 title="Proteína"
                 value={`${todayMacros.protein}g`}
-                subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
+                subtitle={`${profile?.daily_protein_goal || 150}g`}
                 icon={Target}
                 variant="secondary"
               />
               <StatCard
                 title="Entrenamientos Hoy"
                 value={todayWorkouts.length}
-                subtitle={`${todayWorkouts.filter((w) => w.completed).length} completados`}
+                subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
                 icon={Activity}
                 variant="accent"
               />
               <StatCard
                 title="Nivel"
                 value={profile?.fitness_level || "Principiante"}
-                subtitle={profile?.fitness_goal || "Mantener peso"}
                 icon={TrendingUp}
               />
             </div>
