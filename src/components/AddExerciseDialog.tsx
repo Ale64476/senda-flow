@@ -115,18 +115,18 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
                          exercise.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMuscleGroup = !muscleGroupFilter || muscleGroupFilter === "all" || exercise.grupo_muscular === muscleGroupFilter;
     
-    // Lógica de nivel: B=principiante, I=intermedio, P=avanzado
-    // Principiante: solo B
-    // Intermedio: B o I
-    // Avanzado: B, I o P (todos)
+    // Lógica de nivel: La base de datos usa nombres completos
+    // Principiante: solo ejercicios marcados como "Principiante"
+    // Intermedio: ejercicios "Principiante" + "Intermedio"
+    // Avanzado: todos los ejercicios ("Principiante" + "Intermedio" + "Avanzado")
     let matchesLevel = true;
     if (levelFilter && levelFilter !== "all") {
-      if (levelFilter === "principiante") {
-        matchesLevel = exercise.nivel === "B";
-      } else if (levelFilter === "intermedio") {
-        matchesLevel = exercise.nivel === "B" || exercise.nivel === "I";
-      } else if (levelFilter === "avanzado") {
-        matchesLevel = exercise.nivel === "B" || exercise.nivel === "I" || exercise.nivel === "P";
+      if (levelFilter === "Principiante") {
+        matchesLevel = exercise.nivel === "Principiante";
+      } else if (levelFilter === "Intermedio") {
+        matchesLevel = exercise.nivel === "Principiante" || exercise.nivel === "Intermedio";
+      } else if (levelFilter === "Avanzado") {
+        matchesLevel = exercise.nivel === "Principiante" || exercise.nivel === "Intermedio" || exercise.nivel === "Avanzado";
       }
     }
     
