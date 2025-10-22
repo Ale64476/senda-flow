@@ -207,9 +207,16 @@ const Workouts = () => {
     fetchWorkouts();
   };
 
-  const homeWorkouts = workouts.filter((w) => w.location === "casa");
-  const gymWorkouts = workouts.filter((w) => w.location === "gimnasio");
-  const outdoorWorkouts = workouts.filter((w) => w.location === "exterior");
+  const today = getTodayDate();
+  
+  // Filtrar workouts del día actual
+  const todayWorkouts = workouts.filter((w) => w.scheduled_date === today);
+  const otherDaysWorkouts = workouts.filter((w) => w.scheduled_date !== today);
+  
+  // Filtros por ubicación para el día actual
+  const todayHome = todayWorkouts.filter((w) => w.location === "casa");
+  const todayGym = todayWorkouts.filter((w) => w.location === "gimnasio");
+  const todayOutdoor = todayWorkouts.filter((w) => w.location === "exterior");
 
   const WorkoutList = ({ workouts }: { workouts: any[] }) => (
     <div className="space-y-4">
@@ -406,26 +413,83 @@ const Workouts = () => {
             location={formData.location}
           />
 
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 h-auto">
-              <TabsTrigger value="all" className="text-xs sm:text-sm py-2">Todos</TabsTrigger>
-              <TabsTrigger value="casa" className="text-xs sm:text-sm py-2">Casa</TabsTrigger>
-              <TabsTrigger value="gimnasio" className="text-xs sm:text-sm py-2">Gimnasio</TabsTrigger>
-              <TabsTrigger value="exterior" className="text-xs sm:text-sm py-2">Exterior</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="mt-6">
-              <WorkoutList workouts={workouts} />
-            </TabsContent>
-            <TabsContent value="casa" className="mt-6">
-              <WorkoutList workouts={homeWorkouts} />
-            </TabsContent>
-            <TabsContent value="gimnasio" className="mt-6">
-              <WorkoutList workouts={gymWorkouts} />
-            </TabsContent>
-            <TabsContent value="exterior" className="mt-6">
-              <WorkoutList workouts={outdoorWorkouts} />
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Entrenamientos de Hoy</h2>
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 h-auto">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm py-2">Todos</TabsTrigger>
+                  <TabsTrigger value="casa" className="text-xs sm:text-sm py-2">Casa</TabsTrigger>
+                  <TabsTrigger value="gimnasio" className="text-xs sm:text-sm py-2">Gimnasio</TabsTrigger>
+                  <TabsTrigger value="exterior" className="text-xs sm:text-sm py-2">Exterior</TabsTrigger>
+                </TabsList>
+                <TabsContent value="all" className="mt-6">
+                  <WorkoutList workouts={todayWorkouts} />
+                </TabsContent>
+                <TabsContent value="casa" className="mt-6">
+                  <WorkoutList workouts={todayHome} />
+                </TabsContent>
+                <TabsContent value="gimnasio" className="mt-6">
+                  <WorkoutList workouts={todayGym} />
+                </TabsContent>
+                <TabsContent value="exterior" className="mt-6">
+                  <WorkoutList workouts={todayOutdoor} />
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {otherDaysWorkouts.length > 0 && (
+              <Card className="p-4 bg-muted/30">
+                <h3 className="text-lg font-medium mb-3">Ver otros días...</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Entrenamientos guardados recientemente
+                </p>
+                <div className="space-y-3">
+                  {otherDaysWorkouts.slice(0, 5).map((workout) => (
+                    <Card
+                      key={workout.id}
+                      className={`p-4 ${
+                        workout.completed ? "bg-primary/5 border-primary/20" : ""
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <button onClick={() => toggleComplete(workout.id, workout.completed)}>
+                              {workout.completed ? (
+                                <CheckCircle2 className="w-5 h-5 text-primary" />
+                              ) : (
+                                <Circle className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </button>
+                            <div>
+                              <h4 className="font-medium text-sm">{workout.name}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(workout.scheduled_date), "d 'de' MMMM, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-3 ml-7 text-xs text-muted-foreground">
+                            <span>{workout.duration_minutes} min</span>
+                            <span>~{workout.estimated_calories} kcal</span>
+                            <span className="capitalize">{workout.location}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteWorkout(workout.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
