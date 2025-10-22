@@ -18,9 +18,12 @@ const Dashboard = () => {
   const [todayMacros, setTodayMacros] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [todayWorkouts, setTodayWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ axis: 'y', loop: false });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const isMobile = useIsMobile();
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { axis: 'y', loop: false, watchDrag: isMobile },
+    []
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,7 +103,8 @@ const Dashboard = () => {
     };
   }, [emblaApi]);
 
-  if (loading) {
+  // Esperar a que se determine el tamaño de pantalla en la primera carga
+  if (loading || isMobile === undefined) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
