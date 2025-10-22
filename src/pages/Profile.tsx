@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Pencil } from "lucide-react";
 import { ProButton } from "@/components/ProButton";
+import { calculateMacros, validateProfileData } from "@/lib/macrosCalculator";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -20,11 +21,13 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
+    gender: "femenino",
     fitness_level: "principiante",
     fitness_goal: "mantener_peso",
     weight: "",
     height: "",
     age: "",
+    available_days_per_week: "",
     daily_calorie_goal: "",
     daily_protein_goal: "",
     daily_carbs_goal: "",
@@ -54,11 +57,13 @@ const Profile = () => {
       setProfile(profileData);
       setFormData({
         full_name: profileData.full_name || "",
+        gender: profileData.gender || "femenino",
         fitness_level: profileData.fitness_level || "principiante",
         fitness_goal: profileData.fitness_goal || "mantener_peso",
         weight: profileData.weight?.toString() || "",
         height: profileData.height?.toString() || "",
         age: profileData.age?.toString() || "",
+        available_days_per_week: profileData.available_days_per_week?.toString() || "",
         daily_calorie_goal: profileData.daily_calorie_goal?.toString() || "",
         daily_protein_goal: profileData.daily_protein_goal?.toString() || "",
         daily_carbs_goal: profileData.daily_carbs_goal?.toString() || "",
@@ -81,19 +86,39 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Recalcular macros si hay información completa
+    let calculatedMacros = null;
+    const profileData = {
+      gender: formData.gender,
+      age: parseInt(formData.age) || 0,
+      weight: parseFloat(formData.weight) || 0,
+      height: parseFloat(formData.height) || 0,
+      availableDays: parseInt(formData.available_days_per_week) || 0,
+      fitnessLevel: formData.fitness_level,
+      fitnessGoal: formData.fitness_goal,
+    };
+
+    if (validateProfileData(profileData)) {
+      calculatedMacros = calculateMacros(profileData);
+      console.log("Macros recalculados:", calculatedMacros);
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
         full_name: formData.full_name,
+        gender: formData.gender,
         fitness_level: formData.fitness_level as "principiante" | "intermedio" | "avanzado",
         fitness_goal: formData.fitness_goal as "bajar_peso" | "aumentar_masa" | "mantener_peso" | "tonificar" | "mejorar_resistencia" | "ganar_masa" | "bajar_grasa" | "rendimiento",
         weight: parseFloat(formData.weight) || null,
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
-        daily_calorie_goal: parseInt(formData.daily_calorie_goal) || 2000,
-        daily_protein_goal: parseInt(formData.daily_protein_goal) || 150,
-        daily_carbs_goal: parseInt(formData.daily_carbs_goal) || 200,
-        daily_fat_goal: parseInt(formData.daily_fat_goal) || 50,
+        available_days_per_week: parseInt(formData.available_days_per_week) || null,
+        // Usar macros calculados si están disponibles, si no mantener los valores actuales
+        daily_calorie_goal: calculatedMacros?.dailyCalories || parseInt(formData.daily_calorie_goal) || 2000,
+        daily_protein_goal: calculatedMacros?.protein || parseInt(formData.daily_protein_goal) || 150,
+        daily_carbs_goal: calculatedMacros?.carbs || parseInt(formData.daily_carbs_goal) || 200,
+        daily_fat_goal: calculatedMacros?.fat || parseInt(formData.daily_fat_goal) || 50,
       })
       .eq("id", user?.id);
 
@@ -105,7 +130,11 @@ const Profile = () => {
       return;
     }
 
-    toast.success("Perfil actualizado correctamente");
+    if (calculatedMacros) {
+      toast.success("Perfil y macros actualizados correctamente");
+    } else {
+      toast.success("Perfil actualizado correctamente");
+    }
     setIsEditing(false);
     fetchProfile();
   };
@@ -191,6 +220,39 @@ const Profile = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label>Sexo Biológico</Label>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, gender: value })
+                    }
+                    disabled={!isEditing}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tu sexo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="femenino">Femenino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Días de Entrenamiento (por semana)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="7"
+                    value={formData.available_days_per_week}
+                    onChange={(e) => setFormData({ ...formData, available_days_per_week: e.target.value })}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Nivel de Fitness</Label>
                   <Select
                     value={formData.fitness_level}
@@ -266,17 +328,22 @@ const Profile = () => {
               </div>
 
               <div className="border-t pt-6">
-                <h4 className="font-semibold mb-4">Metas Nutricionales Diarias</h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold">Metas Nutricionales Diarias</h4>
+                  <Badge variant="secondary" className="text-xs">Calculado automáticamente</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Estos valores se calculan automáticamente según tu perfil (edad, peso, altura, días de entrenamiento, nivel y objetivo).
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Calorías (kcal)</Label>
                     <Input
                       type="number"
                       value={formData.daily_calorie_goal}
-                      onChange={(e) =>
-                        setFormData({ ...formData, daily_calorie_goal: e.target.value })
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
@@ -284,10 +351,9 @@ const Profile = () => {
                     <Input
                       type="number"
                       value={formData.daily_protein_goal}
-                      onChange={(e) =>
-                        setFormData({ ...formData, daily_protein_goal: e.target.value })
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
@@ -295,10 +361,9 @@ const Profile = () => {
                     <Input
                       type="number"
                       value={formData.daily_carbs_goal}
-                      onChange={(e) =>
-                        setFormData({ ...formData, daily_carbs_goal: e.target.value })
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
@@ -306,10 +371,9 @@ const Profile = () => {
                     <Input
                       type="number"
                       value={formData.daily_fat_goal}
-                      onChange={(e) =>
-                        setFormData({ ...formData, daily_fat_goal: e.target.value })
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
                 </div>
