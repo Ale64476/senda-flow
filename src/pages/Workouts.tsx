@@ -192,6 +192,21 @@ const Workouts = () => {
     fetchWorkouts();
   };
 
+  const deleteWorkout = async (id: string) => {
+    const { error } = await supabase
+      .from("workouts")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Error al eliminar entrenamiento");
+      return;
+    }
+
+    toast.success("Entrenamiento eliminado");
+    fetchWorkouts();
+  };
+
   const homeWorkouts = workouts.filter((w) => w.location === "casa");
   const gymWorkouts = workouts.filter((w) => w.location === "gimnasio");
   const outdoorWorkouts = workouts.filter((w) => w.location === "exterior");
@@ -236,6 +251,14 @@ const Workouts = () => {
                   <span className="capitalize">{workout.location}</span>
                 </div>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => deleteWorkout(workout.id)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-5 h-5" />
+              </Button>
             </div>
           </Card>
         ))
