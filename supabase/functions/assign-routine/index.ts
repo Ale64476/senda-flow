@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -10,14 +11,6 @@ interface PlanScore {
   plan: any;
   score: number;
 }
-
-// Mapeo de objetivos del perfil a objetivos de planes
-const goalMapping: Record<string, string[]> = {
-  'ganar_masa': ['ganar_masa', 'tonificar'],
-  'perder_peso': ['perder_grasa', 'tonificar'],
-  'mantener_peso': ['tonificar', 'perder_grasa'],
-  'tonificar': ['tonificar', 'perder_grasa']
-};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -95,50 +88,81 @@ serve(async (req) => {
 
     console.log(`Found ${plans.length} predesigned plans`);
 
+    // --- Scoring Mappings ---
+    const goalMapping: Record<string, string[]> = {
+      ganar_masa: ['ganar_masa', 'fuerza'],
+      bajar_peso: ['perder_grasa', 'tonificar'],
+      perder_peso: ['perder_grasa', 'tonificar'],
+      bajar_grasa: ['perder_grasa', 'tonificar'],
+      mantener_peso: ['mantener_peso', 'tonificar', 'fuerza'],
+      tonificar: ['tonificar', 'perder_grasa'],
+    };
+
+    const levelMapping: Record<string, string> = {
+      principiante: 'B',
+      intermedio: 'I',
+      avanzado: 'P'
+    };
+
     // Score each plan based on user profile
     const scoredPlans: PlanScore[] = plans.map(plan => {
       let score = 0;
       
-      // Match fitness goal (highest priority)
-      const userGoals = goalMapping[profile.fitness_goal] || [];
-      if (userGoals.includes(plan.objetivo)) {
-        score += 50;
-        if (userGoals[0] === plan.objetivo) {
-          score += 20; // Extra points for primary match
-        }
+      // 1. Match fitness goal (highest priority)
+      const userPrimaryGoal = profile.fitness_goal;
+      const equivalentGoals = goalMapping[userPrimaryGoal] || [userPrimaryGoal];
+      
+      const planGoals = plan.objetivo
+        .toLowerCase()
+        .split(',')
+        .map((g: string) => g.trim().replace(/ /g, '_'));
+
+      if (planGoals.includes(equivalentGoals[0])) {
+        score += 70; // Perfect match on primary goal
+      } else if (equivalentGoals.length > 1 && planGoals.some(pg => pg === equivalentGoals[1])) {
+        score += 50; // Match on secondary equivalent goal
       }
 
-      // Match fitness level (very important)
-      if (plan.nivel === profile.fitness_level) {
+      // 2. Match fitness level (very important)
+      const userLevelCode = levelMapping[profile.fitness_level];
+      if (plan.nivel === userLevelCode) {
         score += 30;
       } else if (
-        (profile.fitness_level === 'principiante' && plan.nivel === 'intermedio') ||
-        (profile.fitness_level === 'intermedio' && plan.nivel === 'avanzado')
+        (userLevelCode === 'B' && plan.nivel === 'I') || // Principiante -> Intermedio
+        (userLevelCode === 'I' && plan.nivel === 'P')    // Intermedio -> Avanzado
       ) {
-        score += 10; // Slightly higher level for progression
+        score += 15; // Slightly higher level for progression
       }
 
-      // Match days per week availability
+      // 3. Match days per week availability
       if (profile.available_days_per_week >= plan.dias_semana) {
         const daysDiff = Math.abs(profile.available_days_per_week - plan.dias_semana);
         score += Math.max(0, 20 - daysDiff * 3);
+      } else {
+        score -= 30; // Penalize heavily if the plan requires more days than available
       }
-
-      // Match training location preference
-      if (profile.training_types && Array.isArray(profile.training_types)) {
+      
+      // 4. Match training location preference
+      let userTrainingTypes = profile.training_types;
+      if (userTrainingTypes && typeof userTrainingTypes === 'string') {
+        try {
+          userTrainingTypes = JSON.parse(userTrainingTypes);
+        } catch (e) {
+          userTrainingTypes = [userTrainingTypes];
+        }
+      }
+      
+      if (userTrainingTypes && Array.isArray(userTrainingTypes)) {
         const placePreference = plan.lugar.toLowerCase();
-        if (
-          (placePreference.includes('casa') && profile.training_types.includes('casa')) ||
-          (placePreference.includes('gimnasio') && profile.training_types.includes('gimnasio'))
-        ) {
+        if (userTrainingTypes.includes(placePreference) || userTrainingTypes.includes('mixto')) {
           score += 15;
         }
       }
 
-      // Consider health conditions
-      if (profile.health_conditions && profile.health_conditions.length > 0 && 
-          plan.nivel === 'principiante') {
-        score += 5; // Prefer beginner plans for people with health conditions
+      // 5. Consider health conditions
+      if (profile.health_conditions && !profile.health_conditions.includes('ninguna') && 
+          plan.nivel === 'B') {
+        score += 10; // Prefer beginner plans for people with health conditions
       }
 
       console.log(`Plan ${plan.id} (${plan.nombre_plan}) scored: ${score}`);
@@ -275,7 +299,7 @@ serve(async (req) => {
     if (createdWorkouts.length > 0) {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ assigned_plan_id: selectedPlan.id, onboarding_completed: true })
+        .update({ assigned_routine_id: selectedPlan.id, onboarding_completed: true })
         .eq('id', user.id);
 
       if (updateError) {

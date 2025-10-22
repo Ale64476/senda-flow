@@ -310,7 +310,9 @@ const OnboardingForm = () => {
 
         const { data: routineData, error: routineError } = await supabase.functions.invoke('assign-routine', {
           method: 'POST',
-          headers: {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+          auth: {
             'Authorization': `Bearer ${session.access_token}`
           }
         });
