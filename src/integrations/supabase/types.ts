@@ -234,6 +234,7 @@ export type Database = {
           allergies_restrictions: string | null
           assigned_routine_id: string | null
           available_days_per_week: number | null
+          available_weekdays: number[] | null
           average_sleep_hours: number | null
           created_at: string
           current_calorie_intake: number | null
@@ -274,6 +275,7 @@ export type Database = {
           allergies_restrictions?: string | null
           assigned_routine_id?: string | null
           available_days_per_week?: number | null
+          available_weekdays?: number[] | null
           average_sleep_hours?: number | null
           created_at?: string
           current_calorie_intake?: number | null
@@ -314,6 +316,7 @@ export type Database = {
           allergies_restrictions?: string | null
           assigned_routine_id?: string | null
           available_days_per_week?: number | null
+          available_weekdays?: number[] | null
           average_sleep_hours?: number | null
           created_at?: string
           current_calorie_intake?: number | null
