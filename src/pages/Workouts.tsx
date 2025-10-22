@@ -10,11 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, CheckCircle2, Circle, Trash2, ChevronDown } from "lucide-react";
+import { Plus, CheckCircle2, Circle, Trash2, ChevronDown, Scan, Library } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddExerciseDialog } from "@/components/AddExerciseDialog";
 import { useCompleteWorkout } from "@/hooks/useBackendApi";
+import { ProButton } from "@/components/ProButton";
 
 interface ConfiguredExercise {
   exercise: {
@@ -264,13 +265,14 @@ const Workouts = () => {
                 Planifica y registra tus rutinas de ejercicio
               </p>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="default" className="gap-2 w-full sm:w-auto">
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-sm sm:text-base">Nuevo Entrenamiento</span>
-                </Button>
-              </DialogTrigger>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button size="default" className="gap-2 w-full sm:w-auto">
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-sm sm:text-base">Nuevo Entrenamiento</span>
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Crear Entrenamiento</DialogTitle>
@@ -382,7 +384,38 @@ const Workouts = () => {
                   </Button>
                 </form>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+              
+              <ProButton
+                icon={Scan}
+                label="Identificar Máquinas IA"
+                featureTitle="Identificación de Máquinas con IA"
+                featureDescription="Escanea equipos de gimnasio y obtén guías de uso instantáneas"
+                features={[
+                  "Identifica cualquier máquina del gym",
+                  "Instrucciones de uso paso a paso",
+                  "Músculos que trabaja cada máquina",
+                  "Ejercicios alternativos similares",
+                  "Historial de máquinas escaneadas"
+                ]}
+                className="w-full sm:w-auto"
+              />
+              
+              <ProButton
+                icon={Library}
+                label="Biblioteca Premium"
+                featureTitle="Biblioteca Premium de Ejercicios"
+                featureDescription="Accede a miles de ejercicios con videos y tutoriales profesionales"
+                features={[
+                  "Más de 1000+ ejercicios con videos HD",
+                  "Tutoriales paso a paso",
+                  "Filtros avanzados por músculo/equipo",
+                  "Guías de técnica correcta",
+                  "Ejercicios progresivos por nivel"
+                ]}
+                className="w-full sm:w-auto"
+              />
+            </div>
           </div>
 
           <AddExerciseDialog

@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { MessageSquare } from "lucide-react";
+import { ProButton } from "@/components/ProButton";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -124,13 +126,31 @@ const Profile = () => {
               </Badge>
             </div>
             {userRole === "user" && (
-              <div className="mt-4 p-4 bg-primary/10 rounded-lg">
-                <p className="text-sm font-medium mb-2">
-                  🌟 Próximamente: Plan PRO
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Análisis con IA, integración con apps de ciclo menstrual, y más funciones exclusivas
-                </p>
+              <div className="mt-4 space-y-3">
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <p className="text-sm font-medium mb-2">
+                    🌟 Próximamente: Plan PRO
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Análisis con IA, integración con apps de ciclo menstrual, y más funciones exclusivas
+                  </p>
+                </div>
+                
+                <ProButton
+                  icon={MessageSquare}
+                  label="Chat Entrenador IA"
+                  featureTitle="Chat Entrenador Personal IA"
+                  featureDescription="Tu entrenador virtual 24/7 con conocimiento de tu progreso y rutina"
+                  features={[
+                    "Respuestas personalizadas basadas en tu perfil",
+                    "Consejos de nutrición y entrenamiento",
+                    "Ajustes a tu rutina en tiempo real",
+                    "Motivación y seguimiento continuo",
+                    "Análisis de tu progreso con IA"
+                  ]}
+                  className="w-full"
+                  disabled
+                />
               </div>
             )}
           </Card>

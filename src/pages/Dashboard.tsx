@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { StatCard } from "@/components/StatCard";
-import { Flame, Activity, Target, TrendingUp } from "lucide-react";
+import { Flame, Activity, Target, TrendingUp, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { ProButton } from "@/components/ProButton";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
@@ -328,6 +331,41 @@ const Dashboard = () => {
             </div>
 
             <RoutineManager />
+
+            <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg sm:text-xl font-semibold">Análisis Avanzado</h3>
+                <Badge variant="default" className="gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  PRO
+                </Badge>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Obtén análisis detallados de tu progreso, reportes personalizados y estadísticas avanzadas
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <ProButton
+                  icon={BarChart3}
+                  label="Ver Gráficos de Progreso"
+                  featureTitle="Análisis Avanzado"
+                  featureDescription="Visualiza tu evolución con gráficos detallados y reportes profesionales"
+                  features={[
+                    "Gráficos de evolución de peso y medidas",
+                    "Comparación de fotos antes/después",
+                    "Estadísticas avanzadas de rendimiento",
+                    "Exportar reportes en PDF",
+                    "Análisis de tendencias con IA"
+                  ]}
+                  variant="outline"
+                  className="w-full"
+                />
+                <Button variant="outline" className="gap-2 w-full" disabled>
+                  <TrendingUp className="w-4 h-4" />
+                  Reportes Mensuales
+                  <Badge variant="default" className="ml-auto">PRO</Badge>
+                </Button>
+              </div>
+            </Card>
 
             <Card className="p-4 sm:p-6 shadow-card bg-gradient-card">
               <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Consejos del Día</h3>

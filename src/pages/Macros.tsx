@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ProButton } from "@/components/ProButton";
 import { StatCard } from "@/components/StatCard";
 import { Flame, Pizza, Beef, Droplet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -191,13 +192,14 @@ const Macros = () => {
                 Registra tus comidas y mantén el control de tu nutrición
               </p>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="default" className="gap-2 w-full sm:w-auto">
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-sm sm:text-base">Registrar Comida</span>
-                </Button>
-              </DialogTrigger>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button size="default" className="gap-2 w-full sm:w-auto">
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-sm sm:text-base">Registrar Comida</span>
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Registrar Comida</DialogTitle>
@@ -398,7 +400,23 @@ const Macros = () => {
                   </Tabs>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+              
+              <ProButton
+                icon={Camera}
+                label="Identificar Comida IA"
+                featureTitle="Identificación de Comida con IA"
+                featureDescription="Analiza fotos de tus comidas y obtén información nutricional instantánea"
+                features={[
+                  "Escanea cualquier plato con tu cámara",
+                  "Estimación automática de calorías y macros",
+                  "Reconocimiento de ingredientes",
+                  "Sugerencias de porciones",
+                  "Historial de análisis con fotos"
+                ]}
+                className="w-full sm:w-auto"
+              />
+            </div>
           </div>
 
           {isMobile ? (
