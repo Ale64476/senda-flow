@@ -48,10 +48,13 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
   }, [location]);
 
   const fetchExercises = async () => {
+    // Para exterior, mostramos ejercicios de casa (se pueden hacer afuera)
+    const filterLocation = location === "exterior" ? "casa" : location;
+    
     const { data } = await supabase
       .from("exercises")
       .select("*")
-      .eq("lugar", location)
+      .eq("lugar", filterLocation)
       .order("nombre");
     
     setExercises(data || []);
