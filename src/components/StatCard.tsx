@@ -29,36 +29,36 @@ export const StatCard = ({
   return (
     <Card
       className={cn(
-        "p-3 sm:p-4 lg:p-6 shadow-card hover:shadow-elevated transition-all duration-300",
+        "p-4 sm:p-5 lg:p-6 shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]",
         variants[variant],
         className
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
           <p className={cn(
-            "text-xs sm:text-sm font-medium truncate",
+            "text-xs sm:text-sm font-semibold truncate uppercase tracking-wide",
             variant === "default" ? "text-muted-foreground" : "opacity-90"
           )}>
             {title}
           </p>
-          <p className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{value}</p>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-bold truncate">{value}</p>
           {subtitle && (
             <p className={cn(
-              "text-xs sm:text-sm truncate",
-              variant === "default" ? "text-muted-foreground" : "opacity-75"
+              "text-xs sm:text-sm truncate font-medium",
+              variant === "default" ? "text-muted-foreground" : "opacity-80"
             )}>
               {subtitle}
             </p>
           )}
         </div>
         <div className={cn(
-          "p-2 sm:p-2.5 lg:p-3 rounded-full flex-shrink-0",
+          "p-3 sm:p-3.5 lg:p-4 rounded-2xl flex-shrink-0 shadow-sm",
           variant === "default" 
             ? "bg-primary/10 text-primary" 
-            : "bg-white/30 dark:bg-white/40 text-white dark:text-white"
+            : "bg-white/25 backdrop-blur-sm text-white"
         )}>
-          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
         </div>
       </div>
     </Card>
