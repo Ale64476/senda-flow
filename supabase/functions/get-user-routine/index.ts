@@ -38,7 +38,7 @@ serve(async (req) => {
     // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*, assigned_plan_id')
+      .select('*, assigned_routine_id')
       .eq('id', user.id)
       .single();
 
@@ -50,7 +50,7 @@ serve(async (req) => {
       );
     }
 
-    if (!profile.assigned_plan_id) {
+    if (!profile.assigned_routine_id) {
       return new Response(
         JSON.stringify({ routine: null, message: 'No routine assigned yet' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -61,7 +61,7 @@ serve(async (req) => {
     const { data: plan, error: planError } = await supabase
       .from('predesigned_plans')
       .select('*')
-      .eq('id', profile.assigned_plan_id)
+      .eq('id', profile.assigned_routine_id)
       .single();
 
     if (planError || !plan) {
