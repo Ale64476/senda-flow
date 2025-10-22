@@ -138,7 +138,7 @@ serve(async (req) => {
       .from('predesigned_plans')
       .select('*')
       .eq('id', profile.assigned_routine_id)
-      .single();
+      .maybeSingle();
 
     const normalizeLocation = (lugar: string | null | undefined): 'casa' | 'gimnasio' | 'exterior' => {
       const normalized = lugar?.toLowerCase() || 'casa';
