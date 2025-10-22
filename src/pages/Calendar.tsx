@@ -55,9 +55,9 @@ const Calendar = () => {
           {isMobile ? (
             <DashboardMobileCarousel
               sections={[
-                // Primera división: Días de la semana
-                <div className="h-full pt-4 px-2 overflow-x-hidden" key="week-days">
-                  <div className="flex justify-between items-center gap-0.5">
+                // Primera división: Días de la semana + entrenamientos pendientes
+                <div className="h-full pt-4 px-2 overflow-y-auto" key="week-days">
+                  <div className="flex justify-between items-center gap-0.5 mb-4">
                     {weekDays.map((day) => {
                       const isToday = isSameDay(day, new Date());
                       const isSelected = isSameDay(day, selectedDate);
@@ -95,34 +95,68 @@ const Calendar = () => {
                       );
                     })}
                   </div>
-                </div>,
-                // Segunda división: Entrenamientos del día seleccionado
-                <div className="h-full p-3 overflow-y-auto" key="day-workouts">
-                  <Card className="p-4 shadow-card">
-                    <h3 className="text-base font-semibold mb-3">
-                      {format(selectedDate, "EEEE, d 'de' MMMM", { locale: es })}
+                  
+                  {/* Entrenamientos pendientes del día seleccionado */}
+                  <div className="px-2">
+                    <h3 className="text-sm font-semibold mb-3">
+                      Entrenamientos Pendientes
                     </h3>
-                    {getWorkoutsForDate(selectedDate).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        No hay entrenamientos programados para este día
+                    {getWorkoutsForDate(selectedDate).filter(w => !w.completed).length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No hay entrenamientos pendientes para este día
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {getWorkoutsForDate(selectedDate).map((workout) => (
+                        {getWorkoutsForDate(selectedDate)
+                          .filter(w => !w.completed)
+                          .map((workout) => (
+                            <div
+                              key={workout.id}
+                              className="p-3 bg-muted rounded-lg"
+                            >
+                              <h4 className="font-semibold text-sm mb-2">{workout.name}</h4>
+                              {workout.description && (
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  {workout.description}
+                                </p>
+                              )}
+                              <div className="flex gap-3 text-xs text-muted-foreground">
+                                <span>{workout.duration_minutes} min</span>
+                                <span>~{workout.estimated_calories} kcal</span>
+                                <span className="capitalize">{workout.location}</span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>,
+                // Segunda división: Entrenamientos completados
+                <div className="h-full p-3 overflow-y-auto" key="completed-workouts">
+                  <h3 className="text-base font-semibold mb-3">
+                    Entrenamientos Completados
+                  </h3>
+                  {getWorkoutsForDate(selectedDate).filter(w => w.completed).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      Los entrenamientos que completes aparecerán aquí
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {getWorkoutsForDate(selectedDate)
+                        .filter(w => w.completed)
+                        .map((workout) => (
                           <div
                             key={workout.id}
-                            className="p-3 bg-muted rounded-lg"
+                            className="p-3 bg-primary/10 rounded-lg border border-primary/20"
                           >
                             <div className="flex items-start justify-between mb-2">
                               <h4 className="font-semibold text-sm">{workout.name}</h4>
-                              {workout.completed && (
-                                <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                                  Completado
-                                </span>
-                              )}
+                              <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                                Completado
+                              </span>
                             </div>
                             {workout.description && (
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <p className="text-xs text-muted-foreground mb-2">
                                 {workout.description}
                               </p>
                             )}
@@ -133,9 +167,8 @@ const Calendar = () => {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
-                  </Card>
+                    </div>
+                  )}
                 </div>
               ]}
             />
