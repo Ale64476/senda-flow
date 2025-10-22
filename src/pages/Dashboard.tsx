@@ -110,21 +110,21 @@ const Dashboard = () => {
     <div key="stats" className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          title="Calorías Hoy"
+          title="Calorías"
           value={todayMacros.calories}
-          subtitle={`${profile?.daily_calorie_goal || 2000} kcal`}
+          subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
           icon={Flame}
           variant="primary"
         />
         <StatCard
           title="Proteína"
           value={`${todayMacros.protein}g`}
-          subtitle={`${profile?.daily_protein_goal || 150}g`}
+          subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
           icon={Target}
           variant="secondary"
         />
         <StatCard
-          title="Entrenamientos Hoy"
+          title="Ejercicios"
           value={todayWorkouts.length}
           subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
           icon={Activity}
@@ -258,21 +258,21 @@ const Dashboard = () => {
           <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               <StatCard
-                title="Calorías Hoy"
+                title="Calorías"
                 value={todayMacros.calories}
-                subtitle={`${profile?.daily_calorie_goal || 2000} kcal`}
+                subtitle={`Meta: ${profile?.daily_calorie_goal || 2000} kcal`}
                 icon={Flame}
                 variant="primary"
               />
               <StatCard
                 title="Proteína"
                 value={`${todayMacros.protein}g`}
-                subtitle={`${profile?.daily_protein_goal || 150}g`}
+                subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
                 icon={Target}
                 variant="secondary"
               />
               <StatCard
-                title="Entrenamientos Hoy"
+                title="Ejercicios"
                 value={todayWorkouts.length}
                 subtitle={`${todayWorkouts.filter((w) => w.completed).length} completos`}
                 icon={Activity}
