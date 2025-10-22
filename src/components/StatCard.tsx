@@ -29,24 +29,21 @@ export const StatCard = ({
   return (
     <Card
       className={cn(
-        "p-3 sm:p-4 shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]",
+        "p-3 sm:p-4 shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] h-full",
         variants[variant],
         className
       )}
     >
-      <div className="flex flex-col gap-2 sm:gap-2.5">
+      <div className="flex flex-col h-full justify-between gap-2.5 sm:gap-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <p className={cn(
-              "text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide leading-tight mb-1.5",
-              variant === "default" ? "text-muted-foreground" : "opacity-90"
-            )}>
-              {title}
-            </p>
-            <p className="text-lg sm:text-xl lg:text-2xl font-bold leading-none break-words">{value}</p>
-          </div>
+          <p className={cn(
+            "text-[10px] sm:text-xs font-semibold uppercase tracking-wide leading-tight flex-1",
+            variant === "default" ? "text-muted-foreground" : "opacity-90"
+          )}>
+            {title}
+          </p>
           <div className={cn(
-            "p-1.5 sm:p-2 rounded-lg flex-shrink-0",
+            "p-2 sm:p-2.5 rounded-lg flex-shrink-0",
             variant === "default" 
               ? "bg-primary/10 text-primary" 
               : "bg-white/25 backdrop-blur-sm text-white"
@@ -54,14 +51,17 @@ export const StatCard = ({
             <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
-        {subtitle && (
-          <p className={cn(
-            "text-[9px] sm:text-[10px] font-medium leading-tight break-words",
-            variant === "default" ? "text-muted-foreground" : "opacity-80"
-          )}>
-            {subtitle}
-          </p>
-        )}
+        <div className="flex flex-col gap-1 sm:gap-1.5">
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold leading-none break-words">{value}</p>
+          {subtitle && (
+            <p className={cn(
+              "text-[10px] sm:text-xs font-medium leading-snug break-words",
+              variant === "default" ? "text-muted-foreground" : "opacity-80"
+            )}>
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
     </Card>
   );
