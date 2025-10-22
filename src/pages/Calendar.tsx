@@ -124,11 +124,6 @@ const Calendar = () => {
                                 className="p-3 bg-muted rounded-lg"
                               >
                                 <h4 className="font-semibold text-sm mb-2">{workout.name}</h4>
-                                {workout.description && (
-                                  <p className="text-xs text-muted-foreground mb-2">
-                                    {workout.description}
-                                  </p>
-                                )}
                                 <div className="flex gap-3 text-xs text-muted-foreground">
                                   <span>{workout.duration_minutes} min</span>
                                   <span>~{workout.estimated_calories} kcal</span>
