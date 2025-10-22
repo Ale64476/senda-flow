@@ -275,8 +275,9 @@ serve(async (req) => {
 
     console.log('Exercises grouped by day:', Object.keys(exercisesByDay).length, 'days');
 
-    // Mapeo de días de semana a números de día (para calcular fechas)
+    // Mapeo de días de semana - soporta tanto letras como números
     const dayMap: Record<string, number> = {
+      // Formato letra (L, M, Mi, etc.)
       'L': 0,   // Lunes (offset desde lunes)
       'M': 1,   // Martes
       'Mi': 2,  // Miércoles
@@ -284,9 +285,18 @@ serve(async (req) => {
       'V': 4,   // Viernes
       'S': 5,   // Sábado
       'D': 6,   // Domingo
+      // Formato numérico (1=Lunes, 2=Martes, etc.)
+      '1': 0,   // Lunes
+      '2': 1,   // Martes
+      '3': 2,   // Miércoles
+      '4': 3,   // Jueves
+      '5': 4,   // Viernes
+      '6': 5,   // Sábado
+      '7': 6,   // Domingo
     };
 
     const dayNames: Record<string, string> = {
+      // Formato letra
       'L': 'Lunes',
       'M': 'Martes',
       'Mi': 'Miércoles',
@@ -294,6 +304,14 @@ serve(async (req) => {
       'V': 'Viernes',
       'S': 'Sábado',
       'D': 'Domingo',
+      // Formato numérico
+      '1': 'Lunes',
+      '2': 'Martes',
+      '3': 'Miércoles',
+      '4': 'Jueves',
+      '5': 'Viernes',
+      '6': 'Sábado',
+      '7': 'Domingo',
     };
 
     // Generate workouts for the week
@@ -310,14 +328,19 @@ serve(async (req) => {
       
       selectedDays.forEach((dayCode: string, index: number) => {
         const dayOffset = dayMap[dayCode];
-        if (dayOffset === undefined) return;
+        if (dayOffset === undefined) {
+          console.warn(`Unknown day code: ${dayCode}, skipping`);
+          return;
+        }
         
-        // Calculate date for this day
+        // Calculate date for this day in current or next week
         const workoutDate = new Date(monday);
         workoutDate.setDate(monday.getDate() + dayOffset);
         
-        // Skip if date is in the past
-        if (workoutDate < today) return;
+        // If date is in the past, schedule for next week
+        if (workoutDate < today) {
+          workoutDate.setDate(workoutDate.getDate() + 7);
+        }
         
         const dateStr = workoutDate.toISOString().split('T')[0];
         
