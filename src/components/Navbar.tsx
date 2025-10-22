@@ -33,7 +33,7 @@ export const Navbar = () => {
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <Link to="/dashboard" className="flex items-center gap-2 group">
               <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow transition-transform group-hover:scale-105">
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+                <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
               </div>
               <span className="text-lg sm:text-xl font-black bg-gradient-primary bg-clip-text text-transparent">
                 SendaFit
