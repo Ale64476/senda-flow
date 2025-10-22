@@ -11,7 +11,7 @@ interface PlanScore {
   score: number;
 }
 
-// Mapeo de objetivos del perfil a objetivos de planes (ahora en minúsculas con guión bajo)
+// Mapeo de objetivos del perfil a objetivos de planes
 const goalMapping: Record<string, string[]> = {
   'ganar_masa': ['ganar_masa', 'tonificar'],
   'perder_peso': ['perder_grasa', 'tonificar'],
@@ -49,6 +49,15 @@ serve(async (req) => {
     }
 
     console.log(`Assigning routine for user ${user.id}`);
+
+    // Get current date for generating weekly workouts
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Calculate Monday of current week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+    monday.setHours(0, 0, 0, 0);
 
     // Get user profile
     const { data: profile, error: profileError } = await supabase
@@ -99,7 +108,7 @@ serve(async (req) => {
         }
       }
 
-      // Match fitness level (very important) - ahora en minúsculas
+      // Match fitness level (very important)
       if (plan.nivel === profile.fitness_level) {
         score += 30;
       } else if (
@@ -115,7 +124,7 @@ serve(async (req) => {
         score += Math.max(0, 20 - daysDiff * 3);
       }
 
-      // Match training location preference - ahora en minúsculas
+      // Match training location preference
       if (profile.training_types && Array.isArray(profile.training_types)) {
         const placePreference = plan.lugar.toLowerCase();
         if (
@@ -126,7 +135,7 @@ serve(async (req) => {
         }
       }
 
-      // Consider health conditions - ahora en minúsculas
+      // Consider health conditions
       if (profile.health_conditions && profile.health_conditions.length > 0 && 
           plan.nivel === 'principiante') {
         score += 5; // Prefer beginner plans for people with health conditions
@@ -138,112 +147,157 @@ serve(async (req) => {
 
     // Sort by score and pick the best match
     scoredPlans.sort((a, b) => b.score - a.score);
-    const bestPlan = scoredPlans[0].plan;
+    const selectedPlan = scoredPlans[0].plan;
 
-    console.log(`Best match: ${bestPlan.id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
+    console.log(`Best match: ${selectedPlan.id} - ${selectedPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
-    // Create base workout template from the best plan
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayDate = `${year}-${month}-${day}`;
+    // Fetch exercises from plan_ejercicios for the selected plan
+    const { data: planExercises, error: planExercisesError } = await supabase
+      .from('plan_ejercicios')
+      .select(`
+        *,
+        exercises:ejercicio_id (*)
+      `)
+      .eq('plan_id', selectedPlan.id)
+      .order('dia', { ascending: true })
+      .order('orden', { ascending: true });
 
-    // Calculate estimated calories based on exercises
-    let estimatedCalories = 0;
-    const planExercisesIds = bestPlan.ejercicios_ids_ordenados;
-    
-    if (planExercisesIds && Array.isArray(planExercisesIds)) {
-      const { data: exercises } = await supabase
-        .from('exercises')
-        .select('calorias_por_repeticion, repeticiones_sugeridas, series_sugeridas')
-        .in('id', planExercisesIds);
-
-      if (exercises && exercises.length > 0) {
-        estimatedCalories = exercises.reduce((total, ex) => {
-          const cals = (ex.calorias_por_repeticion || 0) * (ex.repeticiones_sugeridas || 10) * (ex.series_sugeridas || 3);
-          return total + cals;
-        }, 0);
-      }
-    }
-
-    const { data: newWorkout, error: workoutError } = await supabase
-      .from('workouts')
-      .insert({
-        user_id: user.id,
-        name: bestPlan.nombre_plan,
-        description: bestPlan.descripcion_plan,
-        location: bestPlan.lugar.toLowerCase().includes('gimnasio') ? 'gimnasio' : 'casa',
-        scheduled_date: todayDate,
-        completed: false,
-        duration_minutes: profile.session_duration_minutes || 60,
-        estimated_calories: Math.round(estimatedCalories)
-      })
-      .select()
-      .single();
-
-    if (workoutError || !newWorkout) {
-      console.error('Error creating workout:', workoutError);
+    if (planExercisesError) {
+      console.error('Error fetching plan exercises:', planExercisesError);
       return new Response(
-        JSON.stringify({ error: 'Failed to create workout from plan' }),
+        JSON.stringify({ error: 'Failed to fetch plan exercises', details: planExercisesError }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Created workout ${newWorkout.id} from plan ${bestPlan.id}`);
+    console.log('Fetched plan exercises:', planExercises?.length || 0);
 
-    // Add exercises to the workout
-    const exercisesIds = bestPlan.ejercicios_ids_ordenados;
-    if (exercisesIds && Array.isArray(exercisesIds)) {
-      const { data: exercises, error: exercisesError } = await supabase
-        .from('exercises')
-        .select('*')
-        .in('id', exercisesIds);
+    // Group exercises by day
+    const exercisesByDay: { [key: number]: any[] } = {};
+    planExercises?.forEach((pe: any) => {
+      if (!exercisesByDay[pe.dia]) {
+        exercisesByDay[pe.dia] = [];
+      }
+      exercisesByDay[pe.dia].push(pe);
+    });
 
-      if (!exercisesError && exercises && exercises.length > 0) {
-        const workoutExercises = exercises.map(exercise => ({
-          workout_id: newWorkout.id,
-          name: exercise.nombre,
-          sets: exercise.series_sugeridas || 3,
-          reps: exercise.repeticiones_sugeridas || 10,
-          duration_minutes: exercise.duracion_promedio_segundos ? Math.ceil(exercise.duracion_promedio_segundos / 60) : null,
-          notes: exercise.descripcion
-        }));
+    console.log('Exercises grouped by day:', Object.keys(exercisesByDay).length, 'days');
 
-        const { error: insertExercisesError } = await supabase
+    // Generate workouts for the week
+    const workoutsToCreate = [];
+    const days = Object.keys(exercisesByDay).map(Number).sort((a, b) => a - b);
+    
+    for (const dayNum of days) {
+      const dayExercises = exercisesByDay[dayNum];
+      if (!dayExercises || dayExercises.length === 0) continue;
+
+      // Calculate date for this day (starting from Monday)
+      const workoutDate = new Date(monday);
+      workoutDate.setDate(monday.getDate() + dayNum - 1);
+      const dateStr = workoutDate.toISOString().split('T')[0];
+
+      // Calculate estimated calories for this day's exercises
+      const estimatedCalories = dayExercises.reduce((total: number, pe: any) => {
+        const exercise = pe.exercises;
+        if (!exercise) return total;
+        const caloriesPerRep = exercise.calorias_por_repeticion || 0;
+        const reps = exercise.repeticiones_sugeridas || 10;
+        const sets = exercise.series_sugeridas || 3;
+        return total + (caloriesPerRep * reps * sets);
+      }, 0);
+
+      // Get muscle group from first exercise
+      const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
+
+      workoutsToCreate.push({
+        user_id: user.id,
+        name: `${selectedPlan.nombre_plan} - Día ${dayNum}`,
+        description: `${muscleGroup} - ${selectedPlan.descripcion_plan}`,
+        scheduled_date: dateStr,
+        location: selectedPlan.lugar || 'casa',
+        duration_minutes: dayExercises.length * 5, // Estimate 5 min per exercise
+        estimated_calories: Math.round(estimatedCalories),
+        completed: false,
+        tipo: 'automatico',
+        exercises: dayExercises,
+      });
+    }
+
+    console.log('Creating', workoutsToCreate.length, 'workouts for the week');
+
+    // Create all workouts
+    const createdWorkouts = [];
+    for (const workoutData of workoutsToCreate) {
+      const { exercises, ...workoutInsertData } = workoutData;
+
+      const { data: workout, error: workoutError } = await supabase
+        .from('workouts')
+        .insert(workoutInsertData)
+        .select()
+        .single();
+
+      if (workoutError) {
+        console.error('Error creating workout:', workoutError);
+        continue;
+      }
+
+      console.log('Created workout:', workout.id, 'for date:', workoutData.scheduled_date);
+
+      // Add exercises to the workout
+      if (exercises && exercises.length > 0) {
+        const workoutExercises = exercises.map((pe: any) => {
+          const exercise = pe.exercises;
+          return {
+            workout_id: workout.id,
+            name: exercise.nombre,
+            sets: exercise.series_sugeridas || 3,
+            reps: exercise.repeticiones_sugeridas || 10,
+            notes: `${exercise.grupo_muscular} - ${exercise.nivel}`,
+            duration_minutes: exercise.duracion_promedio_segundos ? Math.ceil(exercise.duracion_promedio_segundos / 60) : null,
+          };
+        });
+
+        const { error: exercisesError } = await supabase
           .from('workout_exercises')
           .insert(workoutExercises);
 
-        if (insertExercisesError) {
-          console.error('Error adding exercises to workout:', insertExercisesError);
+        if (exercisesError) {
+          console.error('Error adding exercises to workout:', workout.id, exercisesError);
         } else {
-          console.log(`Added ${workoutExercises.length} exercises to workout`);
+          console.log('Added', workoutExercises.length, 'exercises to workout:', workout.id);
         }
+      }
+
+      createdWorkouts.push(workout);
+    }
+
+    // Update user profile with the plan reference
+    if (createdWorkouts.length > 0) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ assigned_routine_id: createdWorkouts[0].id })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
       }
     }
 
-    // Assign workout to user profile
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ assigned_routine_id: newWorkout.id })
-      .eq('id', user.id);
-
-    if (updateError) {
-      console.error('Error assigning routine to profile:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to assign routine to profile' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`Assigned workout ${newWorkout.id} to user ${user.id}`);
+    console.log('Routine assigned successfully:', createdWorkouts.length, 'workouts created');
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        routine: newWorkout,
-        plan: bestPlan,
-        message: `Plan "${bestPlan.nombre_plan}" asignado exitosamente`
+        routine: {
+          plan_id: selectedPlan.id,
+          plan_name: selectedPlan.nombre_plan,
+          workouts_created: createdWorkouts.length,
+          workouts: createdWorkouts.map(w => ({
+            id: w.id,
+            name: w.name,
+            date: w.scheduled_date,
+          })),
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

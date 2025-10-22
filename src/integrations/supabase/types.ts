@@ -574,6 +574,7 @@ export type Database = {
           location: Database["public"]["Enums"]["workout_location"]
           name: string
           scheduled_date: string
+          tipo: Database["public"]["Enums"]["workout_type"] | null
           user_id: string
         }
         Insert: {
@@ -587,6 +588,7 @@ export type Database = {
           location?: Database["public"]["Enums"]["workout_location"]
           name: string
           scheduled_date: string
+          tipo?: Database["public"]["Enums"]["workout_type"] | null
           user_id: string
         }
         Update: {
@@ -600,6 +602,7 @@ export type Database = {
           location?: Database["public"]["Enums"]["workout_location"]
           name?: string
           scheduled_date?: string
+          tipo?: Database["public"]["Enums"]["workout_type"] | null
           user_id?: string
         }
         Relationships: [
@@ -633,6 +636,7 @@ export type Database = {
       fitness_level: "principiante" | "intermedio" | "avanzado"
       meal_type: "desayuno" | "colacion_am" | "comida" | "colacion_pm" | "cena"
       workout_location: "casa" | "gimnasio" | "exterior"
+      workout_type: "automatico" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -774,6 +778,7 @@ export const Constants = {
       fitness_level: ["principiante", "intermedio", "avanzado"],
       meal_type: ["desayuno", "colacion_am", "comida", "colacion_pm", "cena"],
       workout_location: ["casa", "gimnasio", "exterior"],
+      workout_type: ["automatico", "manual"],
     },
   },
 } as const

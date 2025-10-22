@@ -6,6 +6,8 @@ import {
   getProgress,
   getProgressStats,
   getRoutines,
+  getTodaysWorkouts,
+  getWorkoutsByDate,
   type ProgressData
 } from '@/lib/api/backend';
 
@@ -18,6 +20,34 @@ export const useUserRoutine = () => {
     queryFn: getUserRoutine,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1
+  });
+};
+
+/**
+ * Hook to get today's workouts
+ */
+export const useTodaysWorkouts = () => {
+  return useQuery({
+    queryKey: ['todays-workouts'],
+    queryFn: getTodaysWorkouts,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1
+  });
+};
+
+/**
+ * Hook to get workouts by date range
+ */
+export const useWorkoutsByDate = (params?: {
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+}) => {
+  return useQuery({
+    queryKey: ['workouts-by-date', params],
+    queryFn: () => getWorkoutsByDate(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!params?.date || !!params?.start_date || !!params?.end_date,
   });
 };
 

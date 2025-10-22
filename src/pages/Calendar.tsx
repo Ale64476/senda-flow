@@ -1,39 +1,27 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { CheckCircle2 } from "lucide-react";
 import { DashboardMobileCarousel } from "@/components/DashboardMobileCarousel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useWorkoutsByDate } from "@/hooks/useBackendApi";
 
 const Calendar = () => {
-  const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [workouts, setWorkouts] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAllPending, setShowAllPending] = useState(false);
 
-  useEffect(() => {
-    fetchWorkouts();
-  }, [user]);
-
-  const fetchWorkouts = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("workouts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("scheduled_date", { ascending: true });
-
-    setWorkouts(data || []);
-  };
-
   const weekStart = startOfWeek(new Date(), { locale: es });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const { data: weekData } = useWorkoutsByDate({
+    start_date: format(weekDays[0], 'yyyy-MM-dd'),
+    end_date: format(weekDays[6], 'yyyy-MM-dd'),
+  });
+
+  const workouts = weekData?.workouts || [];
 
   const getWorkoutsForDate = (date: Date) => {
     return workouts.filter((w) =>

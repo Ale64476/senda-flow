@@ -73,6 +73,50 @@ export async function getUserRoutine(): Promise<RoutineResponse> {
 }
 
 /**
+ * Get today's workouts
+ */
+export async function getTodaysWorkouts(): Promise<{ workouts: any[]; date: string; count: number }> {
+  const { data, error } = await supabase.functions.invoke('get-todays-workouts', {
+    method: 'GET'
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get workouts by date or date range
+ */
+export async function getWorkoutsByDate(params?: {
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+}): Promise<{ workouts: any[]; count: number }> {
+  const queryParams = new URLSearchParams();
+  if (params?.date) queryParams.append('date', params.date);
+  if (params?.start_date) queryParams.append('start_date', params.start_date);
+  if (params?.end_date) queryParams.append('end_date', params.end_date);
+
+  const url = `${SUPABASE_URL}/functions/v1/get-workouts-by-date${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('No session');
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch workouts: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
  * Record progress for a workout
  */
 export async function recordProgress(progressData: ProgressData): Promise<{ success: boolean; progress: any; message: string }> {
