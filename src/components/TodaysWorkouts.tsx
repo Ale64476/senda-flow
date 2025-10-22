@@ -96,7 +96,7 @@ export const TodaysWorkouts = () => {
               key={workout.id}
               className={`border rounded-lg p-4 transition-all ${
                 workout.completed 
-                  ? 'bg-muted/50 border-success/50' 
+                  ? 'bg-muted/50 border-accent/50' 
                   : 'bg-card border-border hover:border-primary/50'
               }`}
             >
@@ -109,7 +109,7 @@ export const TodaysWorkouts = () => {
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <h4 className={`font-semibold mb-1 ${workout.completed ? 'line-through text-muted-foreground' : ''}`}>
+                    <h4 className={`font-semibold mb-1 ${workout.completed ? 'line-through text-muted-foreground' : 'text-card-foreground'}`}>
                       {workout.name}
                     </h4>
                     {workout.description && (
@@ -151,7 +151,7 @@ export const TodaysWorkouts = () => {
                   <div className="space-y-1">
                     {workout.workout_exercises.slice(0, 3).map((exercise: any, idx: number) => (
                       <div key={exercise.id || idx} className="text-xs flex items-center justify-between">
-                        <span className={workout.completed ? 'text-muted-foreground line-through' : ''}>
+                        <span className={workout.completed ? 'text-muted-foreground line-through' : 'text-foreground'}>
                           {exercise.name}
                         </span>
                         <span className="text-muted-foreground">
