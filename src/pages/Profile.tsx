@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Pencil } from "lucide-react";
 import { ProButton } from "@/components/ProButton";
 
 const Profile = () => {
@@ -17,6 +17,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [userRole, setUserRole] = useState<string>("user");
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     fitness_level: "principiante",
@@ -105,6 +106,7 @@ const Profile = () => {
     }
 
     toast.success("Perfil actualizado correctamente");
+    setIsEditing(false);
     fetchProfile();
   };
 
@@ -163,13 +165,26 @@ const Profile = () => {
           </Card>
 
           <Card className="p-4 sm:p-6 shadow-card">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Información Personal</h3>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-semibold">Información Personal</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                disabled={isEditing}
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label>Nombre Completo</Label>
                 <Input
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  disabled={!isEditing}
                   required
                 />
               </div>
@@ -182,6 +197,7 @@ const Profile = () => {
                     onValueChange={(value) =>
                       setFormData({ ...formData, fitness_level: value })
                     }
+                    disabled={!isEditing}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tu nivel" />
@@ -201,6 +217,7 @@ const Profile = () => {
                     onValueChange={(value) =>
                       setFormData({ ...formData, fitness_goal: value })
                     }
+                    disabled={!isEditing}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tu objetivo" />
@@ -224,6 +241,7 @@ const Profile = () => {
                     step="0.1"
                     value={formData.weight}
                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="space-y-2">
@@ -233,6 +251,7 @@ const Profile = () => {
                     step="0.1"
                     value={formData.height}
                     onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="space-y-2">
@@ -241,6 +260,7 @@ const Profile = () => {
                     type="number"
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -256,6 +276,7 @@ const Profile = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, daily_calorie_goal: e.target.value })
                       }
+                      disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
@@ -266,6 +287,7 @@ const Profile = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, daily_protein_goal: e.target.value })
                       }
+                      disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
@@ -276,6 +298,7 @@ const Profile = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, daily_carbs_goal: e.target.value })
                       }
+                      disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
@@ -286,12 +309,13 @@ const Profile = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, daily_fat_goal: e.target.value })
                       }
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="w-full" disabled={!isEditing || loading}>
                 {loading ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </form>
