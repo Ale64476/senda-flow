@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Dumbbell, CheckCircle, TrendingUp } from "lucide-react";
+import { Loader2, Dumbbell, TrendingUp, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   useUserRoutine,
   useProgressStats
@@ -83,43 +84,58 @@ export function RoutineManager() {
           <CardHeader className="p-3 sm:p-6">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base sm:text-lg truncate">{routineData.routine.name}</CardTitle>
-                <CardDescription className="text-xs sm:text-sm line-clamp-2">{routineData.routine.description}</CardDescription>
+                <CardTitle className="text-base sm:text-lg truncate">{routineData.routine.nombre_plan}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm line-clamp-2">{routineData.routine.descripcion_plan}</CardDescription>
               </div>
-              <Badge variant="secondary" className="text-xs shrink-0">
-                {routineData.routine.location}
-              </Badge>
+              <div className="text-right">
+                <Badge variant="secondary" className="text-xs shrink-0 mb-1">{routineData.routine.lugar}</Badge>
+                <Badge variant="outline" className="text-xs shrink-0 capitalize">{routineData.routine.nivel}</Badge>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3 p-3 sm:p-6 pt-0">
+          <CardContent className="space-y-4 p-3 sm:p-6 pt-0">
             <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
               <div>
-                <span className="text-muted-foreground">Duración:</span>
-                <span className="ml-2 font-medium">{routineData.routine.duration_minutes} min</span>
+                <span className="text-muted-foreground">Objetivo:</span>
+                <span className="ml-2 font-medium capitalize">{routineData.routine.objetivo?.replace('_', ' ')}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Calorías:</span>
-                <span className="ml-2 font-medium">{routineData.routine.estimated_calories} kcal</span>
+                <span className="text-muted-foreground">Frecuencia:</span>
+                <span className="ml-2 font-medium">{routineData.routine.dias_semana} días/sem</span>
               </div>
             </div>
 
-            {routineData.routine.workout_exercises && routineData.routine.workout_exercises.length > 0 && (
+            {routineData.routine.days && Object.keys(routineData.routine.days).length > 0 ? (
               <div>
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">Ejercicios:</h4>
-                <ul className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {routineData.routine.workout_exercises.map((exercise: any) => (
-                    <li key={exercise.id} className="flex items-center gap-2 text-xs sm:text-sm">
-                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 shrink-0" />
-                      <span className="flex-1 truncate">{exercise.name}</span>
-                      {exercise.sets && exercise.reps && (
-                        <span className="text-muted-foreground text-xs shrink-0">
-                          ({exercise.sets} x {exercise.reps})
-                        </span>
-                      )}
-                    </li>
+                <h4 className="font-semibold mb-2 text-sm sm:text-base">Distribución Semanal:</h4>
+                <div className="space-y-2">
+                  {Object.entries(routineData.routine.days).map(([day, exercises]: [string, any[]]) => (
+                     <Collapsible key={day} className="space-y-1">
+                      <CollapsibleTrigger className="w-full flex justify-between items-center p-2 bg-muted rounded-md text-left">
+                        <span className="font-medium text-sm">Día {day}: {exercises[0]?.grupo_muscular || 'Variado'}</span>
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ul className="space-y-1.5 p-2 border rounded-md">
+                          {exercises.map((exercise: any) => (
+                            <li key={exercise.id} className="flex items-center gap-2 text-xs sm:text-sm">
+                              <Dumbbell className="h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
+                              <span className="flex-1 truncate">{exercise.nombre}</span>
+                              <span className="text-muted-foreground text-xs shrink-0">
+                                ({exercise.series_sugeridas || 3}x{exercise.repeticiones_sugeridas || 10})
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
-                </ul>
+                </div>
               </div>
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                No se encontraron ejercicios para este plan.
+              </p>
             )}
           </CardContent>
         </Card>

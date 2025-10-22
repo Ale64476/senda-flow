@@ -61,18 +61,6 @@ const Dashboard = () => {
           .eq("scheduled_date", today);
 
         setTodayWorkouts(workoutsData || []);
-
-        if ((!workoutsData || workoutsData.length === 0) && profileData?.assigned_routine_id) {
-          const { data: assignedWorkout } = await supabase
-            .from("workouts")
-            .select("*, workout_exercises(*)")
-            .eq("id", profileData.assigned_routine_id)
-            .single();
-
-          if (assignedWorkout) {
-            setTodayWorkouts([assignedWorkout]);
-          }
-        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {

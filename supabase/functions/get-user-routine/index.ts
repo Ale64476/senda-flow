@@ -35,47 +35,80 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile with assigned routine
+    // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        assigned_routine:workouts!assigned_routine_id(
-          *,
-          workout_exercises(*)
-        )
-      `)
+      .select('*, assigned_plan_id')
       .eq('id', user.id)
       .single();
 
-    if (profileError) {
+    if (profileError || !profile) {
       console.error('Error fetching profile:', profileError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch profile' }),
+        JSON.stringify({ error: 'Failed to fetch profile or profile not found' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!profile.assigned_routine) {
+    if (!profile.assigned_plan_id) {
       return new Response(
-        JSON.stringify({ 
-          routine: null,
-          message: 'No routine assigned yet'
-        }),
+        JSON.stringify({ routine: null, message: 'No routine assigned yet' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Retrieved routine for user ${user.id}`);
+    // Get the assigned plan details
+    const { data: plan, error: planError } = await supabase
+      .from('predesigned_plans')
+      .select('*')
+      .eq('id', profile.assigned_plan_id)
+      .single();
+
+    if (planError || !plan) {
+      console.error('Error fetching assigned plan:', planError);
+      return new Response(
+        JSON.stringify({ error: 'Assigned plan not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get the exercises for the plan
+    const { data: planExercises, error: exercisesError } = await supabase
+      .from('plan_ejercicios')
+      .select('*, exercises:ejercicio_id(*)')
+      .eq('plan_id', plan.id)
+      .order('dia', { ascending: true })
+      .order('orden', { ascending: true });
+
+    if (exercisesError) {
+      console.error('Error fetching plan exercises:', exercisesError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch exercises for the plan' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Structure the routine object
+    const routine = {
+      ...plan,
+      days: planExercises?.reduce((acc, pe) => {
+        const day = pe.dia;
+        if (!acc[day]) {
+          acc[day] = [];
+        }
+        acc[day].push(pe.exercises);
+        return acc;
+      }, {}),
+    };
+
+    console.log(`Retrieved routine '${plan.nombre_plan}' for user ${user.id}`);
 
     return new Response(
       JSON.stringify({ 
-        routine: profile.assigned_routine,
+        routine,
         profile: {
           fitness_level: profile.fitness_level,
           fitness_goal: profile.fitness_goal,
-          available_days_per_week: profile.available_days_per_week,
-          session_duration_minutes: profile.session_duration_minutes
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

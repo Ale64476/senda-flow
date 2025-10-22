@@ -67,27 +67,6 @@ const Workouts = () => {
     }
 
     setWorkouts(data || []);
-
-    // If no workouts, check if user has an assigned routine
-    if ((!data || data.length === 0)) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("assigned_routine_id")
-        .eq("id", user.id)
-        .single();
-
-      if (profile?.assigned_routine_id) {
-        const { data: assignedWorkout } = await supabase
-          .from("workouts")
-          .select("*, workout_exercises(*)")
-          .eq("id", profile.assigned_routine_id)
-          .single();
-
-        if (assignedWorkout) {
-          setWorkouts([assignedWorkout]);
-        }
-      }
-    }
   };
 
   const handleAddExercise = (exercise: ConfiguredExercise) => {
