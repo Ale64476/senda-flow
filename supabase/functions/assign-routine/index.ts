@@ -333,23 +333,33 @@ serve(async (req) => {
           return;
         }
         
+        console.log(`Processing day ${dayCode} (index ${index}, offset ${dayOffset})`);
+        
         // Calculate date for this day in current or next week
         const workoutDate = new Date(monday);
         workoutDate.setDate(monday.getDate() + dayOffset);
         
         // If date is in the past, schedule for next week
         if (workoutDate < today) {
+          console.log(`Date ${workoutDate.toISOString().split('T')[0]} is in the past, scheduling for next week`);
           workoutDate.setDate(workoutDate.getDate() + 7);
         }
         
         const dateStr = workoutDate.toISOString().split('T')[0];
+        console.log(`Workout date for day ${dayCode}: ${dateStr}`);
         
         // Get corresponding plan day (circular distribution)
         const planDayIndex = index % days.length;
         const planDay = days[planDayIndex];
-        const dayExercises = exercisesByDay[planDay];
+        console.log(`Plan day index: ${planDayIndex}, Plan day: ${planDay}, Available plan days: [${days.join(', ')}]`);
         
-        if (!dayExercises || dayExercises.length === 0) return;
+        const dayExercises = exercisesByDay[planDay];
+        console.log(`Day exercises for plan day ${planDay}: ${dayExercises?.length || 0} exercises`);
+        
+        if (!dayExercises || dayExercises.length === 0) {
+          console.warn(`No exercises found for plan day ${planDay}, skipping`);
+          return;
+        }
         
         // Calculate estimated calories
         const estimatedCalories = dayExercises.reduce((total: number, pe: any) => {
