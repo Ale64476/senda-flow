@@ -405,8 +405,8 @@ const Macros = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Stats en cuadros
-                <div className="h-full flex items-center justify-center p-2" key="stats">
-                  <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+                <div className="h-full flex items-center justify-center p-4" key="stats">
+                  <div className="grid grid-cols-2 gap-3 w-full max-w-md mx-auto">
                     <StatCard
                       title="Calorías"
                       value={totals.calories}
