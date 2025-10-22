@@ -8,96 +8,98 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* SendaFit Brand Colors - Fitness Theme */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* SendaFit Brand Colors - Modern Mobile Fitness Theme */
+    --background: 250 100% 98%;
+    --foreground: 240 10% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 15%;
 
-    /* Primary: Vibrant Emerald Green - Energy & Health */
-    --primary: 160 84% 39%;
+    /* Primary: Vibrant Purple - Modern & Energetic */
+    --primary: 270 95% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 160 84% 49%;
+    --primary-glow: 270 95% 75%;
 
-    /* Secondary: Energetic Coral - Motivation */
-    --secondary: 14 100% 67%;
+    /* Secondary: Electric Pink - Motivation & Energy */
+    --secondary: 330 85% 65%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted: Soft Neutral */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted: Soft Neutral with Purple Tint */
+    --muted: 250 30% 96%;
+    --muted-foreground: 240 10% 50%;
 
-    /* Accent: Ocean Blue - Trust & Progress */
-    --accent: 200 98% 39%;
+    /* Accent: Bright Cyan - Progress & Achievement */
+    --accent: 190 95% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 160 84% 39%;
+    --border: 250 30% 92%;
+    --input: 250 30% 94%;
+    --ring: 270 95% 65%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom Fitness Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(160 84% 39%), hsl(160 84% 49%));
-    --gradient-secondary: linear-gradient(135deg, hsl(14 100% 67%), hsl(25 95% 70%));
-    --gradient-hero: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(200 98% 39%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(160 50% 98%) 100%);
+    /* Modern Mobile Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 95% 65%), hsl(280 90% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(330 85% 65%), hsl(340 90% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(270 95% 65%) 0%, hsl(190 95% 60%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(270 30% 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(190 95% 60%), hsl(200 90% 65%));
     
-    /* Shadows */
-    --shadow-card: 0 4px 20px -2px hsl(160 84% 39% / 0.1);
-    --shadow-elevated: 0 10px 40px -10px hsl(160 84% 39% / 0.15);
-    --shadow-glow: 0 0 40px hsl(160 84% 49% / 0.4);
+    /* Modern Shadows with Color */
+    --shadow-card: 0 2px 20px -4px hsl(270 95% 65% / 0.15);
+    --shadow-elevated: 0 8px 30px -8px hsl(270 95% 65% / 0.25);
+    --shadow-glow: 0 0 30px hsl(270 95% 75% / 0.5);
     
-    /* Transitions */
+    /* Smooth Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    --background: 240 20% 8%;
+    --foreground: 250 100% 98%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 18% 12%;
+    --card-foreground: 250 100% 98%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 18% 12%;
+    --popover-foreground: 250 100% 98%;
 
-    --primary: 160 84% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 160 84% 55%;
+    --primary: 270 95% 70%;
+    --primary-foreground: 240 20% 8%;
+    --primary-glow: 270 95% 80%;
 
-    --secondary: 14 100% 63%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 330 85% 70%;
+    --secondary-foreground: 240 20% 8%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 15% 18%;
+    --muted-foreground: 240 10% 65%;
 
-    --accent: 200 98% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 190 95% 65%;
+    --accent-foreground: 240 20% 8%;
 
-    --destructive: 0 63% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 250 100% 98%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 160 84% 45%;
+    --border: 240 15% 20%;
+    --input: 240 15% 18%;
+    --ring: 270 95% 70%;
 
-    /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(160 84% 35%), hsl(160 84% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(14 100% 58%), hsl(25 95% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(160 84% 35%) 0%, hsl(200 98% 35%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(222 47% 9%) 0%, hsl(160 30% 12%) 100%);
+    /* Dark Mode Modern Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 95% 60%), hsl(280 90% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(330 85% 60%), hsl(340 90% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(270 95% 60%) 0%, hsl(190 95% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(240 18% 12%) 0%, hsl(270 30% 15%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(190 95% 55%), hsl(200 90% 60%));
     
-    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
-    --shadow-elevated: 0 10px 40px -10px hsl(0 0% 0% / 0.4);
-    --shadow-glow: 0 0 40px hsl(160 84% 55% / 0.5);
+    --shadow-card: 0 2px 20px -4px hsl(270 95% 70% / 0.3);
+    --shadow-elevated: 0 8px 30px -8px hsl(270 95% 70% / 0.4);
+    --shadow-glow: 0 0 30px hsl(270 95% 80% / 0.6);
   }
 }
 
