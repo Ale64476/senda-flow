@@ -46,8 +46,8 @@ jobs:
           name: QA con Cline (JSON estructurado)
           command: |
             curl -s -X POST https://api.hicap.ai/v2/openai \
-            -H "Authorization: Bearer $CLINE_API_KEY" \
             -H "Content-Type: application/json" \
+            -H "api-key: $CLINE_API_KEY" \
             -d '{
               "prompt": "Eres un asistente de QA de código. Analiza este diff y responde únicamente con un JSON con dos campos: \
               1) recommendations: una lista en español de sugerencias, observaciones o errores detectados. \
