@@ -405,15 +405,15 @@ const Macros = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Stats en cuadros
-                <div className="h-full flex items-center justify-center p-4" key="stats">
-                  <div className="grid grid-cols-2 gap-3 w-full max-w-md mx-auto">
+                <div className="h-full flex items-center justify-center px-3" key="stats">
+                  <div className="grid grid-cols-2 gap-2.5 w-full max-w-md mx-auto">
                     <StatCard
                       title="Calorías"
                       value={totals.calories}
                       subtitle={`Meta: ${profile?.daily_calorie_goal || 2000}`}
                       icon={Flame}
                       variant="primary"
-                      className="h-[140px]"
+                      className="h-[120px]"
                     />
                     <StatCard
                       title="Proteína"
@@ -421,50 +421,52 @@ const Macros = () => {
                       subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
                       icon={Beef}
                       variant="secondary"
-                      className="h-[140px]"
+                      className="h-[120px]"
                     />
                     <StatCard
                       title="Carbohidratos"
                       value={`${totals.carbs}g`}
                       subtitle={`Meta: ${profile?.daily_carbs_goal || 200}g`}
                       icon={Pizza}
-                      className="h-[140px]"
+                      className="h-[120px]"
                     />
                     <StatCard
                       title="Grasas"
                       value={`${totals.fat}g`}
                       subtitle={`Meta: ${profile?.daily_fat_goal || 50}g`}
                       icon={Droplet}
-                      className="h-[140px]"
+                      className="h-[120px]"
                     />
                   </div>
                 </div>,
                 // Segunda división: Meals con acordeón
-                <div className="h-full p-2 overflow-y-auto" key="meals">
+                <div className="h-full p-3 overflow-y-auto" key="meals">
                   {mealsByType.filter(type => type.meals.length > 0).length === 0 ? (
-                    <Card className="p-8 shadow-card text-center">
-                      <p className="text-lg text-muted-foreground">
-                        Los alimentos que registres apareceran aqui :D
-                      </p>
-                    </Card>
+                    <div className="h-full flex items-center justify-center">
+                      <Card className="p-6 shadow-card text-center">
+                        <p className="text-base text-muted-foreground">
+                          Los alimentos que registres apareceran aqui :D
+                        </p>
+                      </Card>
+                    </div>
                   ) : (
                     <Accordion type="single" collapsible className="space-y-2">
                       {mealsByType
                         .filter((type) => type.meals.length > 0)
                         .map((type) => (
-                          <AccordionItem key={type.value} value={type.value} className="border rounded-lg px-4 bg-card shadow-card">
-                            <AccordionTrigger className="hover:no-underline">
-                              <h3 className="text-lg font-semibold">{type.label}</h3>
+                          <AccordionItem key={type.value} value={type.value} className="border rounded-lg px-3 bg-card shadow-card">
+                            <AccordionTrigger className="hover:no-underline py-3">
+                              <h3 className="text-base font-semibold">{type.label}</h3>
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="space-y-2 pt-2">
+                              <div className="space-y-2 pb-2">
                                 {type.meals.map((meal) => (
                                   <div
                                     key={meal.id}
-                                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                                    className="flex items-center justify-between p-2.5 bg-muted rounded-lg"
                                   >
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-medium truncate">{meal.name}</p>
+                                      <p className="font-medium truncate text-sm">{meal.name}</p>
                                       <p className="text-xs text-muted-foreground">
                                         {meal.calories} kcal · {meal.protein}g prot · {meal.carbs}g carbs · {meal.fat}g grasa
                                       </p>
@@ -473,7 +475,7 @@ const Macros = () => {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => handleDelete(meal.id)}
-                                      className="ml-2 flex-shrink-0"
+                                      className="ml-2 flex-shrink-0 h-8 w-8"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </Button>
