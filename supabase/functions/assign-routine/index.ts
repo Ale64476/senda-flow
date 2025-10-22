@@ -11,19 +11,12 @@ interface PlanScore {
   score: number;
 }
 
-// Mapeo de objetivos del perfil a objetivos de planes
+// Mapeo de objetivos del perfil a objetivos de planes (ahora en minúsculas con guión bajo)
 const goalMapping: Record<string, string[]> = {
-  'ganar_masa': ['Ganar masa', 'Tonificar'],
-  'perder_peso': ['Perder grasa', 'Tonificar'],
-  'mantener_peso': ['Tonificar', 'Resistencia'],
-  'tonificar': ['Tonificar', 'Perder grasa']
-};
-
-// Mapeo de niveles
-const levelMapping: Record<string, string> = {
-  'principiante': 'Principiante',
-  'intermedio': 'Intermedio',
-  'avanzado': 'Avanzado'
+  'ganar_masa': ['ganar_masa', 'tonificar'],
+  'perder_peso': ['perder_grasa', 'tonificar'],
+  'mantener_peso': ['tonificar', 'perder_grasa'],
+  'tonificar': ['tonificar', 'perder_grasa']
 };
 
 serve(async (req) => {
@@ -106,13 +99,12 @@ serve(async (req) => {
         }
       }
 
-      // Match fitness level (very important)
-      const userLevel = levelMapping[profile.fitness_level];
-      if (plan.nivel === userLevel) {
+      // Match fitness level (very important) - ahora en minúsculas
+      if (plan.nivel === profile.fitness_level) {
         score += 30;
       } else if (
-        (profile.fitness_level === 'principiante' && plan.nivel === 'Intermedio') ||
-        (profile.fitness_level === 'intermedio' && plan.nivel === 'Avanzado')
+        (profile.fitness_level === 'principiante' && plan.nivel === 'intermedio') ||
+        (profile.fitness_level === 'intermedio' && plan.nivel === 'avanzado')
       ) {
         score += 10; // Slightly higher level for progression
       }
@@ -123,20 +115,20 @@ serve(async (req) => {
         score += Math.max(0, 20 - daysDiff * 3);
       }
 
-      // Match training location preference
+      // Match training location preference - ahora en minúsculas
       if (profile.training_types && Array.isArray(profile.training_types)) {
         const placePreference = plan.lugar.toLowerCase();
         if (
-          (placePreference.includes('casa') && profile.training_types.includes('Casa')) ||
-          (placePreference.includes('gimnasio') && profile.training_types.includes('Gimnasio'))
+          (placePreference.includes('casa') && profile.training_types.includes('casa')) ||
+          (placePreference.includes('gimnasio') && profile.training_types.includes('gimnasio'))
         ) {
           score += 15;
         }
       }
 
-      // Consider health conditions
+      // Consider health conditions - ahora en minúsculas
       if (profile.health_conditions && profile.health_conditions.length > 0 && 
-          plan.nivel === 'Principiante') {
+          plan.nivel === 'principiante') {
         score += 5; // Prefer beginner plans for people with health conditions
       }
 
