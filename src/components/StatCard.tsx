@@ -56,7 +56,7 @@ export const StatCard = ({
           "p-2 sm:p-2.5 lg:p-3 rounded-full flex-shrink-0",
           variant === "default" 
             ? "bg-primary/10 text-primary" 
-            : "bg-white/20"
+            : "bg-white/30 dark:bg-white/40 text-white dark:text-white"
         )}>
           <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
         </div>

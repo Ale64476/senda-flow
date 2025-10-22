@@ -21,7 +21,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const mealTypes = [
   { value: "desayuno", label: "Desayuno" },
   { value: "colacion_am", label: "Colación AM" },
-  { value: "comida", label: "Comida" },
+  { value: "comida", label: "Almuerzo" },
   { value: "colacion_pm", label: "Colación PM" },
   { value: "cena", label: "Cena" },
 ];
@@ -404,14 +404,15 @@ const Macros = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Stats
-                <div className="space-y-4" key="stats">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3" key="stats">
+                  <div className="grid grid-cols-1 gap-3">
                     <StatCard
                       title="Calorías"
                       value={totals.calories}
                       subtitle={`Meta: ${profile?.daily_calorie_goal || 2000}`}
                       icon={Flame}
                       variant="primary"
+                      className="min-h-[100px]"
                     />
                     <StatCard
                       title="Proteína"
@@ -419,57 +420,64 @@ const Macros = () => {
                       subtitle={`Meta: ${profile?.daily_protein_goal || 150}g`}
                       icon={Beef}
                       variant="secondary"
+                      className="min-h-[100px]"
                     />
                     <StatCard
                       title="Carbohidratos"
                       value={`${totals.carbs}g`}
                       subtitle={`Meta: ${profile?.daily_carbs_goal || 200}g`}
                       icon={Pizza}
+                      className="min-h-[100px]"
                     />
                     <StatCard
                       title="Grasas"
                       value={`${totals.fat}g`}
                       subtitle={`Meta: ${profile?.daily_fat_goal || 50}g`}
                       icon={Droplet}
+                      className="min-h-[100px]"
                     />
                   </div>
                 </div>,
                 // Segunda división: Meals
                 <div className="space-y-4" key="meals">
-                  {mealsByType.map((type) => (
-                    <Card key={type.value} className="p-4 shadow-card">
-                      <h3 className="text-lg font-semibold mb-3">{type.label}</h3>
-                      {type.meals.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">
-                          No has registrado nada para {type.label.toLowerCase()}
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          {type.meals.map((meal) => (
-                            <div
-                              key={meal.id}
-                              className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{meal.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {meal.calories} kcal · {meal.protein}g prot · {meal.carbs}g carbs · {meal.fat}g grasa
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(meal.id)}
-                                className="ml-2 flex-shrink-0"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                  {mealsByType.filter(type => type.meals.length > 0).length === 0 ? (
+                    <Card className="p-8 shadow-card text-center">
+                      <p className="text-lg text-muted-foreground">
+                        Los alimentos que registres apareceran aqui :D
+                      </p>
                     </Card>
-                  ))}
+                  ) : (
+                    mealsByType
+                      .filter((type) => type.meals.length > 0)
+                      .map((type) => (
+                        <Card key={type.value} className="p-4 shadow-card">
+                          <h3 className="text-lg font-semibold mb-3">{type.label}</h3>
+                          <div className="space-y-2">
+                            {type.meals.map((meal) => (
+                              <div
+                                key={meal.id}
+                                className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">{meal.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {meal.calories} kcal · {meal.protein}g prot · {meal.carbs}g carbs · {meal.fat}g grasa
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(meal.id)}
+                                  className="ml-2 flex-shrink-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+                      ))
+                  )}
                 </div>
               ]}
             />
