@@ -114,7 +114,22 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
     const matchesSearch = exercise.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMuscleGroup = !muscleGroupFilter || muscleGroupFilter === "all" || exercise.grupo_muscular === muscleGroupFilter;
-    const matchesLevel = !levelFilter || levelFilter === "all" || exercise.nivel === levelFilter;
+    
+    // Lógica de nivel: B=principiante, I=intermedio, P=avanzado
+    // Principiante: solo B
+    // Intermedio: B o I
+    // Avanzado: B, I o P (todos)
+    let matchesLevel = true;
+    if (levelFilter && levelFilter !== "all") {
+      if (levelFilter === "principiante") {
+        matchesLevel = exercise.nivel === "B";
+      } else if (levelFilter === "intermedio") {
+        matchesLevel = exercise.nivel === "B" || exercise.nivel === "I";
+      } else if (levelFilter === "avanzado") {
+        matchesLevel = exercise.nivel === "B" || exercise.nivel === "I" || exercise.nivel === "P";
+      }
+    }
+    
     const matchesType = !typeFilter || typeFilter === "all" || exercise.tipo_entrenamiento === typeFilter;
     
     return matchesSearch && matchesMuscleGroup && matchesLevel && matchesType;
