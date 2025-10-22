@@ -153,7 +153,7 @@ const Dashboard = () => {
     </div>,
 
     // Sección 2: Análisis Avanzado PRO
-    <Card key="advanced-analytics" className="p-4 shadow-card bg-gradient-card h-full flex flex-col">
+    <Card key="advanced-analytics" className="p-4 shadow-card bg-gradient-card h-full flex flex-col justify-center">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Análisis Avanzado</h3>
         <Badge variant="default" className="gap-1">
@@ -161,7 +161,7 @@ const Dashboard = () => {
           PRO
         </Badge>
       </div>
-      <p className="text-sm text-muted-foreground mb-4 flex-1">
+      <p className="text-sm text-muted-foreground mb-6">
         Obtén análisis detallados de tu progreso, reportes personalizados y estadísticas avanzadas
       </p>
       <div className="space-y-2">
