@@ -26,14 +26,14 @@ export function RoutineManager() {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-6 p-3 sm:p-6">
-      <div>
+    <div className="space-y-3 sm:space-y-6 h-full flex flex-col overflow-hidden">
+      <div className="shrink-0 px-3 pt-3 sm:px-6 sm:pt-6">
         <h1 className="text-xl sm:text-3xl font-bold">Gestor de Rutinas</h1>
       </div>
 
       {/* Stats Cards - Más compactas */}
       {statsData && (
-        <div className="grid gap-2 grid-cols-3">
+        <div className="grid gap-2 grid-cols-3 shrink-0 px-3 sm:px-6">
           <Card className="shadow-sm">
             <CardHeader className="pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium">
@@ -79,77 +79,79 @@ export function RoutineManager() {
       )}
 
       {/* Current Routine */}
-      {routineData?.routine ? (
-        <Card className="shadow-sm">
-          <CardHeader className="p-3 sm:p-6">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-base sm:text-lg truncate">{routineData.routine.nombre_plan}</CardTitle>
-                <CardDescription className="text-xs sm:text-sm line-clamp-2">{routineData.routine.descripcion_plan}</CardDescription>
-              </div>
-              <div className="text-right">
-                <Badge variant="secondary" className="text-xs shrink-0 mb-1">{routineData.routine.lugar}</Badge>
-                <Badge variant="outline" className="text-xs shrink-0 capitalize">{routineData.routine.nivel}</Badge>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 p-3 sm:p-6 pt-0">
-            <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-              <div>
-                <span className="text-muted-foreground">Objetivo:</span>
-                <span className="ml-2 font-medium capitalize">{routineData.routine.objetivo?.replace('_', ' ')}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Frecuencia:</span>
-                <span className="ml-2 font-medium">{routineData.routine.dias_semana} días/sem</span>
-              </div>
-            </div>
-
-            {routineData.routine.days && Object.keys(routineData.routine.days).length > 0 ? (
-              <div>
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">Distribución Semanal:</h4>
-                <div className="space-y-2">
-                  {Object.entries(routineData.routine.days).map(([day, exercises]: [string, any[]]) => (
-                     <Collapsible key={day} className="space-y-1">
-                      <CollapsibleTrigger className="w-full flex justify-between items-center p-2 bg-muted rounded-md text-left">
-                        <span className="font-medium text-sm">Día {day}: {exercises[0]?.grupo_muscular || 'Variado'}</span>
-                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <ul className="space-y-1.5 p-2 border rounded-md">
-                          {exercises.map((exercise: any, idx: number) => (
-                            <li key={`${day}-${exercise.id}-${idx}`} className="flex items-center gap-2 text-xs sm:text-sm">
-                              <Dumbbell className="h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
-                              <span className="flex-1 truncate">{exercise.nombre}</span>
-                              <span className="text-muted-foreground text-xs shrink-0">
-                                ({exercise.series_sugeridas || 3}x{exercise.repeticiones_sugeridas || 10})
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
+      <div className="flex-1 overflow-y-auto px-3 pb-3 sm:px-6 sm:pb-6">
+        {routineData?.routine ? (
+          <Card className="shadow-sm h-full flex flex-col">
+            <CardHeader className="p-3 sm:p-6 shrink-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base sm:text-lg truncate">{routineData.routine.nombre_plan}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm line-clamp-2">{routineData.routine.descripcion_plan}</CardDescription>
+                </div>
+                <div className="text-right">
+                  <Badge variant="secondary" className="text-xs shrink-0 mb-1">{routineData.routine.lugar}</Badge>
+                  <Badge variant="outline" className="text-xs shrink-0 capitalize">{routineData.routine.nivel}</Badge>
                 </div>
               </div>
-            ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No se encontraron ejercicios para este plan.
+            </CardHeader>
+            <CardContent className="space-y-4 p-3 sm:p-6 pt-0 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm shrink-0">
+                <div>
+                  <span className="text-muted-foreground">Objetivo:</span>
+                  <span className="ml-2 font-medium capitalize">{routineData.routine.objetivo?.replace('_', ' ')}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Frecuencia:</span>
+                  <span className="ml-2 font-medium">{routineData.routine.dias_semana} días/sem</span>
+                </div>
+              </div>
+
+              {routineData.routine.days && Object.keys(routineData.routine.days).length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm sm:text-base shrink-0">Distribución Semanal:</h4>
+                  <div className="space-y-2">
+                    {Object.entries(routineData.routine.days).map(([day, exercises]: [string, any[]]) => (
+                       <Collapsible key={day} className="space-y-1">
+                        <CollapsibleTrigger className="w-full flex justify-between items-center p-2 bg-muted rounded-md text-left hover:bg-muted/80 transition-colors">
+                          <span className="font-medium text-sm">Día {day}: {exercises[0]?.grupo_muscular || 'Variado'}</span>
+                          <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="overflow-hidden">
+                          <ul className="space-y-1.5 p-2 border rounded-md bg-card/50 max-h-60 overflow-y-auto">
+                            {exercises.map((exercise: any, idx: number) => (
+                              <li key={`${day}-${exercise.id}-${idx}`} className="flex items-center gap-2 text-xs sm:text-sm py-1">
+                                <Dumbbell className="h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
+                                <span className="flex-1 truncate">{exercise.nombre}</span>
+                                <span className="text-muted-foreground text-xs shrink-0">
+                                  ({exercise.series_sugeridas || 3}x{exercise.repeticiones_sugeridas || 10})
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No se encontraron ejercicios para este plan.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="shadow-sm h-full flex items-center justify-center">
+            <CardContent className="flex flex-col items-center justify-center p-8 sm:p-12 text-center">
+              <Dumbbell className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold mb-2">No hay rutina asignada</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Completa el proceso de onboarding para obtener tu rutina personalizada
               </p>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="shadow-sm">
-          <CardContent className="flex flex-col items-center justify-center p-8 sm:p-12 text-center">
-            <Dumbbell className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold mb-2">No hay rutina asignada</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Completa el proceso de onboarding para obtener tu rutina personalizada
-            </p>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

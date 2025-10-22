@@ -152,7 +152,43 @@ const Dashboard = () => {
       </Card>
     </div>,
 
-    // Sección 2: Entrenamientos de Hoy
+    // Sección 2: Análisis Avanzado PRO
+    <Card key="advanced-analytics" className="p-4 shadow-card bg-gradient-card h-full flex flex-col">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-semibold">Análisis Avanzado</h3>
+        <Badge variant="default" className="gap-1">
+          <TrendingUp className="w-3 h-3" />
+          PRO
+        </Badge>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4 flex-1">
+        Obtén análisis detallados de tu progreso, reportes personalizados y estadísticas avanzadas
+      </p>
+      <div className="space-y-2">
+        <ProButton
+          icon={BarChart3}
+          label="Ver Gráficos de Progreso"
+          featureTitle="Análisis Avanzado"
+          featureDescription="Visualiza tu evolución con gráficos detallados y reportes profesionales"
+          features={[
+            "Gráficos de evolución de peso y medidas",
+            "Comparación de fotos antes/después",
+            "Estadísticas avanzadas de rendimiento",
+            "Exportar reportes en PDF",
+            "Análisis de tendencias con IA"
+          ]}
+          variant="outline"
+          className="w-full"
+        />
+        <Button variant="outline" className="gap-2 w-full" disabled>
+          <TrendingUp className="w-4 h-4" />
+          Reportes Mensuales
+          <Badge variant="default" className="ml-auto text-xs">PRO</Badge>
+        </Button>
+      </div>
+    </Card>,
+
+    // Sección 3: Entrenamientos de Hoy
     <Card key="workouts" className="p-4 shadow-card h-full flex flex-col">
       <h3 className="text-lg font-semibold mb-3">Entrenamientos de Hoy</h3>
       {todayWorkouts.length === 0 ? (
@@ -181,12 +217,12 @@ const Dashboard = () => {
       )}
     </Card>,
 
-    // Sección 3: Gestor de Rutinas
-    <div key="routine-manager">
+    // Sección 4: Gestor de Rutinas
+    <div key="routine-manager" className="h-full overflow-hidden">
       <RoutineManager />
     </div>,
 
-    // Sección 4: Consejos del Día
+    // Sección 5: Consejos del Día
     <Card key="tips" className="p-4 shadow-card bg-gradient-card h-full flex flex-col">
       <h3 className="text-lg font-semibold mb-3">Consejos del Día</h3>
       <div className="space-y-3 flex-1">
