@@ -90,13 +90,23 @@ serve(async (req) => {
 
     // --- Scoring Mappings ---
     // Normalize goal strings to match between DB and profile formats
-    const normalizeGoal = (goal: string): string => {
+    const normalizeGoal = (goal: string | null | undefined): string => {
+      if (!goal) return '';
       return goal
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '') // Remove accents
         .replace(/\s+/g, '_')
         .trim();
+    };
+
+    // Normalizar el valor de location al enum correcto (casa, gimnasio, exterior)
+    const normalizeLocation = (lugar: string | null | undefined): 'casa' | 'gimnasio' | 'exterior' => {
+      const normalized = lugar?.toLowerCase() || 'casa';
+      if (normalized.includes('casa')) return 'casa';
+      if (normalized.includes('gimnasio') || normalized.includes('gym')) return 'gimnasio';
+      if (normalized.includes('exterior') || normalized.includes('parque')) return 'exterior';
+      return 'casa'; // default
     };
 
     const goalMapping: Record<string, string[]> = {
@@ -114,6 +124,12 @@ serve(async (req) => {
       avanzado: 'P'
     };
 
+    // Validate user level
+    const userLevelCode = levelMapping[profile.fitness_level];
+    if (!userLevelCode) {
+      console.warn(`Unknown fitness level: ${profile.fitness_level}, defaulting to principiante`);
+    }
+
     // Score each plan based on user profile
     const scoredPlans: PlanScore[] = plans.map(plan => {
       let score = 0;
@@ -124,30 +140,28 @@ serve(async (req) => {
       
       // Normalize plan objectives (e.g., "Ganar Masa, Perder Grasa" -> ["ganar_masa", "perder_grasa"])
       const planGoals = plan.objetivo
-        .split(',')
-        .map((g: string) => normalizeGoal(g));
+        ? plan.objetivo.split(',').map((g: string) => normalizeGoal(g)).filter(g => g)
+        : [];
 
       // Check for exact match with primary goal
-      const hasExactMatch = planGoals.some(pg => equivalentGoals.includes(pg));
+      const hasExactGoalMatch = planGoals.some(pg => equivalentGoals.includes(pg));
+      const hasSecondaryGoalMatch = equivalentGoals.length > 1 
+        ? planGoals.some(pg => equivalentGoals.slice(1).includes(pg))
+        : false;
       
-      if (hasExactMatch) {
+      if (hasExactGoalMatch) {
         score += 70; // Perfect match on primary goal
-      } else if (equivalentGoals.length > 1) {
-        // Check for secondary goals
-        const hasSecondaryMatch = planGoals.some(pg => equivalentGoals.slice(1).includes(pg));
-        if (hasSecondaryMatch) {
-          score += 50; // Match on secondary equivalent goal
-        }
+      } else if (hasSecondaryGoalMatch) {
+        score += 50; // Match on secondary equivalent goal
       }
 
       // 2. Match fitness level (very important)
-      const userLevelCode = levelMapping[profile.fitness_level];
-      if (plan.nivel === userLevelCode) {
+      const hasLevelMatch = plan.nivel === userLevelCode;
+      const hasProgressionMatch = (userLevelCode === 'B' && plan.nivel === 'I') || 
+                                    (userLevelCode === 'I' && plan.nivel === 'P');
+      if (hasLevelMatch) {
         score += 30;
-      } else if (
-        (userLevelCode === 'B' && plan.nivel === 'I') || // Principiante -> Intermedio
-        (userLevelCode === 'I' && plan.nivel === 'P')    // Intermedio -> Avanzado
-      ) {
+      } else if (hasProgressionMatch) {
         score += 15; // Slightly higher level for progression
       }
 
@@ -169,17 +183,16 @@ serve(async (req) => {
         }
       }
       
-      if (userTrainingTypes && Array.isArray(userTrainingTypes)) {
-        // Normalize plan location (e.g., "Gimnasio" -> "gimnasio")
-        const planLocation = normalizeGoal(plan.lugar);
-        
-        // Normalize user training types
-        const normalizedUserTypes = userTrainingTypes.map((t: string) => normalizeGoal(t));
-        
-        // Check if there's a match
-        if (normalizedUserTypes.includes(planLocation) || normalizedUserTypes.includes('mixto')) {
-          score += 15;
-        }
+      const hasLocationMatch = userTrainingTypes && Array.isArray(userTrainingTypes)
+        ? (() => {
+            const planLocation = normalizeGoal(plan.lugar);
+            const normalizedUserTypes = userTrainingTypes.map((t: string) => normalizeGoal(t));
+            return normalizedUserTypes.includes(planLocation) || normalizedUserTypes.includes('mixto');
+          })()
+        : false;
+
+      if (hasLocationMatch) {
+        score += 15;
       }
 
       // 5. Consider health conditions
@@ -189,18 +202,24 @@ serve(async (req) => {
       }
 
       console.log(`Plan ${plan.id} (${plan.nombre_plan}) scored: ${score}`, {
-        goalMatch: hasExactMatch ? 'exact' : 'none',
-        levelMatch: plan.nivel === userLevelCode,
+        goalMatch: hasExactGoalMatch ? 'exact' : (hasSecondaryGoalMatch ? 'secondary' : 'none'),
+        levelMatch: hasLevelMatch,
+        levelProgression: hasProgressionMatch,
         daysAvailable: profile.available_days_per_week >= plan.dias_semana,
-        locationMatch: userTrainingTypes && Array.isArray(userTrainingTypes) ? userTrainingTypes.map((t: string) => normalizeGoal(t)).includes(normalizeGoal(plan.lugar)) : false
+        locationMatch: hasLocationMatch
       });
       return { plan, score };
     });
 
     // Sort by score and pick the best match
     scoredPlans.sort((a, b) => b.score - a.score);
+    
+    // Validate that we have a reasonable match (score > 0)
+    if (scoredPlans[0].score === 0) {
+      console.warn('No suitable plan found with matching criteria, selecting default beginner plan');
+    }
+    
     const selectedPlan = scoredPlans[0].plan;
-
     console.log(`Best match: ${selectedPlan.id} - ${selectedPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
     // Fetch exercises from plan_ejercicios for the selected plan
@@ -260,15 +279,6 @@ serve(async (req) => {
 
       // Get muscle group from first exercise
       const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
-
-      // Normalizar el valor de location al enum correcto (casa, gimnasio, exterior)
-      const normalizeLocation = (lugar: string): 'casa' | 'gimnasio' | 'exterior' => {
-        const normalized = lugar?.toLowerCase() || 'casa';
-        if (normalized.includes('casa')) return 'casa';
-        if (normalized.includes('gimnasio') || normalized.includes('gym')) return 'gimnasio';
-        if (normalized.includes('exterior') || normalized.includes('parque')) return 'exterior';
-        return 'casa'; // default
-      };
 
       workoutsToCreate.push({
         user_id: user.id,
