@@ -14,6 +14,7 @@ const Calendar = () => {
   const isMobile = useIsMobile();
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showAllPending, setShowAllPending] = useState(false);
 
   useEffect(() => {
     fetchWorkouts();
@@ -101,34 +102,52 @@ const Calendar = () => {
                     <h3 className="text-sm font-semibold mb-3">
                       Entrenamientos Pendientes
                     </h3>
-                    {getWorkoutsForDate(selectedDate).filter(w => !w.completed).length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        No hay entrenamientos pendientes para este día
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {getWorkoutsForDate(selectedDate)
-                          .filter(w => !w.completed)
-                          .map((workout) => (
-                            <div
-                              key={workout.id}
-                              className="p-3 bg-muted rounded-lg"
-                            >
-                              <h4 className="font-semibold text-sm mb-2">{workout.name}</h4>
-                              {workout.description && (
-                                <p className="text-xs text-muted-foreground mb-2">
-                                  {workout.description}
-                                </p>
-                              )}
-                              <div className="flex gap-3 text-xs text-muted-foreground">
-                                <span>{workout.duration_minutes} min</span>
-                                <span>~{workout.estimated_calories} kcal</span>
-                                <span className="capitalize">{workout.location}</span>
+                    {(() => {
+                      const pendingWorkouts = getWorkoutsForDate(selectedDate).filter(w => !w.completed);
+                      const hasMoreThan3 = pendingWorkouts.length > 3;
+                      const displayedWorkouts = showAllPending ? pendingWorkouts : pendingWorkouts.slice(0, 3);
+                      
+                      if (pendingWorkouts.length === 0) {
+                        return (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            No hay entrenamientos pendientes para este día
+                          </p>
+                        );
+                      }
+                      
+                      return (
+                        <div className={showAllPending ? "overflow-y-auto max-h-[calc(100vh-320px)]" : ""}>
+                          <div className="space-y-3">
+                            {displayedWorkouts.map((workout) => (
+                              <div
+                                key={workout.id}
+                                className="p-3 bg-muted rounded-lg"
+                              >
+                                <h4 className="font-semibold text-sm mb-2">{workout.name}</h4>
+                                {workout.description && (
+                                  <p className="text-xs text-muted-foreground mb-2">
+                                    {workout.description}
+                                  </p>
+                                )}
+                                <div className="flex gap-3 text-xs text-muted-foreground">
+                                  <span>{workout.duration_minutes} min</span>
+                                  <span>~{workout.estimated_calories} kcal</span>
+                                  <span className="capitalize">{workout.location}</span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
+                            ))}
+                            {hasMoreThan3 && !showAllPending && (
+                              <div
+                                onClick={() => setShowAllPending(true)}
+                                className="p-2 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors text-center"
+                              >
+                                <span className="text-xs text-muted-foreground">Ver todos...</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>,
                 // Segunda división: Entrenamientos completados
