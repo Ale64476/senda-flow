@@ -14,9 +14,11 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
     dragFree: false,
     skipSnaps: false,
     watchDrag: true,
-    watchResize: true
+    watchResize: true,
+    watchSlides: true
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -25,18 +27,32 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
       setSelectedIndex(emblaApi.selectedScrollSnap());
     };
 
+    const onPointerDown = () => {
+      setIsDragging(true);
+    };
+
+    const onPointerUp = () => {
+      setIsDragging(false);
+    };
+
     emblaApi.on('select', onSelect);
+    emblaApi.on('pointerDown', onPointerDown);
+    emblaApi.on('pointerUp', onPointerUp);
     onSelect();
 
     return () => {
       emblaApi.off('select', onSelect);
+      emblaApi.off('pointerDown', onPointerDown);
+      emblaApi.off('pointerUp', onPointerUp);
     };
   }, [emblaApi]);
 
   return (
     <div className="relative h-[calc(100vh-12rem)]">
       <div 
-        className="overflow-hidden h-full touch-pan-y" 
+        className={`overflow-hidden h-full touch-pan-y select-none ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
         ref={emblaRef}
         style={{ touchAction: 'pan-y' }}
       >
@@ -44,9 +60,9 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
           {sections.map((section, index) => (
             <div
               key={index}
-              className="min-h-[calc(100vh-12rem)] flex-[0_0_auto] px-1 flex items-center justify-center"
+              className="min-h-[calc(100vh-12rem)] flex-[0_0_auto] px-1 flex items-center justify-center pointer-events-auto"
             >
-              <div className="w-full animate-fade-in">
+              <div className="w-full animate-fade-in pointer-events-auto">
                 {section}
               </div>
             </div>
