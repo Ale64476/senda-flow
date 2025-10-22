@@ -43,9 +43,9 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [estimatedCalories, setEstimatedCalories] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>("");
-  const [levelFilter, setLevelFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchExercises();
@@ -113,9 +113,9 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = !muscleGroupFilter || exercise.grupo_muscular === muscleGroupFilter;
-    const matchesLevel = !levelFilter || exercise.nivel === levelFilter;
-    const matchesType = !typeFilter || exercise.tipo_entrenamiento === typeFilter;
+    const matchesMuscleGroup = !muscleGroupFilter || muscleGroupFilter === "all" || exercise.grupo_muscular === muscleGroupFilter;
+    const matchesLevel = !levelFilter || levelFilter === "all" || exercise.nivel === levelFilter;
+    const matchesType = !typeFilter || typeFilter === "all" || exercise.tipo_entrenamiento === typeFilter;
     
     return matchesSearch && matchesMuscleGroup && matchesLevel && matchesType;
   });
@@ -142,9 +142,9 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
     setRepeticiones("10");
     setPeso("0");
     setSearchTerm("");
-    setMuscleGroupFilter("");
-    setLevelFilter("");
-    setTypeFilter("");
+    setMuscleGroupFilter("all");
+    setLevelFilter("all");
+    setTypeFilter("all");
     onOpenChange(false);
   };
 
@@ -175,7 +175,7 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {uniqueMuscleGroups.map((group) => (
                     <SelectItem key={group} value={group}>
                       {group}
@@ -192,7 +192,7 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {uniqueLevels.map((level) => (
                     <SelectItem key={level} value={level}>
                       {level}
@@ -209,7 +209,7 @@ export const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, location 
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {uniqueTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
