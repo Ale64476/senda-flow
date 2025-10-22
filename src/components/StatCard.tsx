@@ -37,7 +37,7 @@ export const StatCard = ({
       <div className="flex flex-col h-full justify-between gap-2.5 sm:gap-3">
         <div className="flex items-start justify-between gap-2">
           <p className={cn(
-            "text-[10px] sm:text-xs font-semibold uppercase tracking-wide leading-tight flex-1",
+            "text-xs sm:text-sm font-semibold uppercase tracking-wide leading-tight flex-1",
             variant === "default" ? "text-muted-foreground" : "opacity-90"
           )}>
             {title}
@@ -48,7 +48,7 @@ export const StatCard = ({
               ? "bg-primary/10 text-primary" 
               : "bg-white/25 backdrop-blur-sm text-white"
           )}>
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
         <div className="flex flex-col gap-1 sm:gap-1.5">
