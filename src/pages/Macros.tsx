@@ -293,11 +293,11 @@ const Macros = () => {
                                 <Label>Cantidad de Porciones</Label>
                                 <Input
                                   type="number"
-                                  step="0.1"
-                                  min="0.1"
+                                  step="0.001"
+                                  min="0.001"
                                   value={portion}
                                   onChange={(e) => setPortion(e.target.value)}
-                                  placeholder="1"
+                                  placeholder="Ej: 1, 0.5, 0.01"
                                 />
                               </div>
 
