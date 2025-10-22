@@ -121,6 +121,8 @@ const Workouts = () => {
     const totalCalories = getTotalCalories();
     const totalDuration = getTotalDuration();
 
+    console.log('Fecha seleccionada en el formulario:', formData.scheduled_date);
+
     const { data: workoutData, error: workoutError } = await supabase
       .from("workouts")
       .insert([{
@@ -134,6 +136,9 @@ const Workouts = () => {
       }])
       .select()
       .single();
+
+    console.log('Workout guardado:', workoutData);
+    console.log('Fecha guardada en DB:', workoutData?.scheduled_date);
 
     if (workoutError) {
       toast.error("Error al crear entrenamiento");
