@@ -7,54 +7,72 @@ jobs:
     steps:
       - checkout
       
-      # Restaurar caché de dependencias para acelerar la instalación
+      # Instalar dependencias del sistema (jq para procesar JSON)
+      - run:
+          name: Instalar jq
+          command: sudo apt-get update && sudo apt-get install -y jq
+
+      # Restaurar caché de dependencias
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package-lock.json" }}
             - v1-dependencies-
       
-      # Instalar dependencias usando npm ci para consistencia
+      # Instalar dependencias
       - run:
           name: Instalar Dependencias
           command: npm ci
       
-      # Guardar caché de dependencias
+      # Guardar caché
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
       
-      # Ejecutar linter (no falla el build si hay errores)
+      # Linter
       - run:
           name: Ejecutar Linter
           command: npm run lint || true
       
-      # Build del proyecto
+      # Build
       - run:
           name: Build del Proyecto
           command: npm run build
 
-      # Notificar a Cline (el paso que añadimos originalmente)
+      # QA con Cline
       - run:
-          name: Notificar a Cline para validación QA
+          name: Revisar QA con Cline
           command: |
-            # Asegúrate de haber configurado la variable de entorno CLINE_API_KEY en la configuración de tu proyecto de CircleCI.
-            curl -X POST https://api.hicap.ai/v2/openai \
+            curl -s -X POST https://api.hicap.ai/v2/openai \
             -H "Authorization: Bearer $CLINE_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
               "repo": "senda-flow",
               "branch": "main",
-              "status": "success",
-              "build_url": "'"$CIRCLE_BUILD_URL"'"
-            }'
-      
-      # Guardar artefactos del build para inspección
+              "build_url": "'"$CIRCLE_BUILD_URL"'",
+              "request": "Revisa este build y devuelve un JSON con: { status: 'pass'|'fail', errors: [lista de errores] }"
+            }' > cline_qa_result.json
+
+      # Interpretar JSON de Cline
+      - run:
+          name: Validar QA parseando JSON
+          command: |
+            STATUS=$(jq -r '.status' cline_qa_result.json)
+            if [ "$STATUS" = "fail" ]; then
+              echo "La evaluación QA con IA detectó errores, build fallido."
+              jq '.' cline_qa_result.json
+              exit 1
+            else
+              echo "La evaluación QA con IA se ha aprobado correctamente."
+              jq '.' cline_qa_result.json
+            fi
+
+      # Guardar artefactos
       - store_artifacts:
           path: dist
           destination: build-output
       
-      # Persistir el workspace para que otros jobs puedan usar el resultado del build
+      # Persistir workspace
       - persist_to_workspace:
           root: .
           paths:
