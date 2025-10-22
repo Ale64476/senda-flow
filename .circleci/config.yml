@@ -6,73 +6,82 @@ jobs:
       - image: cimg/node:20.11
     steps:
       - checkout
-      
-      # Instalar dependencias del sistema (jq para procesar JSON)
-      - run:
-          name: Instalar jq
-          command: sudo apt-get update && sudo apt-get install -y jq
 
       # Restaurar caché de dependencias
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package-lock.json" }}
             - v1-dependencies-
-      
+
       # Instalar dependencias
       - run:
           name: Instalar Dependencias
           command: npm ci
-      
+
       # Guardar caché
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
-      
-      # Linter
+
+      # Ejecutar linter
       - run:
           name: Ejecutar Linter
           command: npm run lint || true
-      
-      # Build
+
+      # Build del proyecto
       - run:
           name: Build del Proyecto
           command: npm run build
 
-      # QA con Cline
+      # Generar diff respecto a main
       - run:
-          name: Revisar QA con Cline
+          name: Generar Diff
+          command: |
+            git fetch origin main
+            git diff origin/main > code_diff.txt
+
+      # Enviar diff a Cline para QA estructurada en español
+      - run:
+          name: QA con Cline (JSON estructurado)
           command: |
             curl -s -X POST https://api.hicap.ai/v2/openai \
             -H "Authorization: Bearer $CLINE_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
-              "repo": "senda-flow",
-              "branch": "main",
-              "build_url": "'"$CIRCLE_BUILD_URL"'",
-              "request": "Revisa este build y devuelve un JSON con: { status: 'pass'|'fail', errors: [lista de errores] }"
-            }' > cline_qa_result.json
+              "prompt": "Eres un asistente de QA de código. Analiza este diff y responde únicamente con un JSON con dos campos: \
+              1) recommendations: una lista en español de sugerencias, observaciones o errores detectados. \
+              2) status: \"approved\" si todo está correcto o \"rejected\" si hay errores graves. \
+              No agregues texto fuera del JSON.\nDiff:\n'"$(cat code_diff.txt)"'"
+            }' > cline_qa.json
 
-      # Interpretar JSON de Cline
+      # Mostrar la salida completa para depuración
       - run:
-          name: Validar QA parseando JSON
+          name: Mostrar resultado de Cline
           command: |
-            STATUS=$(jq -r '.status' cline_qa_result.json)
-            if [ "$STATUS" = "fail" ]; then
-              echo "La evaluación QA con IA detectó errores, build fallido."
-              jq '.' cline_qa_result.json
+            echo "=== Resultado de Cline ==="
+            cat cline_qa.json
+
+      # Validar estado y fallar build si es rechazado
+      - run:
+          name: Validar QA
+          command: |
+            STATUS=$(jq -r '.status' cline_qa.json)
+            echo "Estado de QA: $STATUS"
+            if [ "$STATUS" = "rejected" ]; then
+              echo "QA rechazado, build fallido."
+              jq -r '.recommendations[]' cline_qa.json
               exit 1
             else
-              echo "La evaluación QA con IA se ha aprobado correctamente."
-              jq '.' cline_qa_result.json
+              echo "QA aprobado."
+              jq -r '.recommendations[]' cline_qa.json
             fi
 
       # Guardar artefactos
       - store_artifacts:
           path: dist
           destination: build-output
-      
-      # Persistir workspace
+
       - persist_to_workspace:
           root: .
           paths:
