@@ -28,6 +28,7 @@ const Profile = () => {
     height: "",
     age: "",
     available_days_per_week: "",
+    available_weekdays: [] as string[],
     daily_calorie_goal: "",
     daily_protein_goal: "",
     daily_carbs_goal: "",
@@ -64,6 +65,9 @@ const Profile = () => {
         height: profileData.height?.toString() || "",
         age: profileData.age?.toString() || "",
         available_days_per_week: profileData.available_days_per_week?.toString() || "",
+        available_weekdays: Array.isArray(profileData.available_weekdays) 
+          ? profileData.available_weekdays.map(String) 
+          : [],
         daily_calorie_goal: profileData.daily_calorie_goal?.toString() || "",
         daily_protein_goal: profileData.daily_protein_goal?.toString() || "",
         daily_carbs_goal: profileData.daily_carbs_goal?.toString() || "",
@@ -85,6 +89,11 @@ const Profile = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Verificar si cambiaron los días de entrenamiento
+    const oldWeekdays = profile?.available_weekdays || [];
+    const newWeekdays = formData.available_weekdays;
+    const weekdaysChanged = JSON.stringify(oldWeekdays.sort()) !== JSON.stringify(newWeekdays.sort());
 
     // Recalcular macros si hay información completa
     let calculatedMacros = null;
@@ -113,7 +122,8 @@ const Profile = () => {
         weight: parseFloat(formData.weight) || null,
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
-        available_days_per_week: parseInt(formData.available_days_per_week) || null,
+        available_days_per_week: formData.available_weekdays.length || null,
+        available_weekdays: formData.available_weekdays.length > 0 ? formData.available_weekdays : null,
         // Usar macros calculados si están disponibles, si no mantener los valores actuales
         daily_calorie_goal: calculatedMacros?.dailyCalories || parseInt(formData.daily_calorie_goal) || 2000,
         daily_protein_goal: calculatedMacros?.protein || parseInt(formData.daily_protein_goal) || 150,
@@ -122,13 +132,40 @@ const Profile = () => {
       })
       .eq("id", user?.id);
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       console.error("Error updating profile:", error);
       toast.error("Error al actualizar perfil: " + error.message);
       return;
     }
+
+    // Si cambiaron los días, redistribuir entrenamientos
+    if (weekdaysChanged && newWeekdays.length > 0) {
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData?.session?.access_token;
+      
+      if (token) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/redistribute-workouts`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            console.error('Error redistributing workouts');
+          } else {
+            toast.success("Entrenamientos redistribuidos según tus nuevos días");
+          }
+        } catch (error) {
+          console.error('Error calling redistribute function:', error);
+        }
+      }
+    }
+
+    setLoading(false);
 
     if (calculatedMacros) {
       toast.success("Perfil y macros actualizados correctamente");
@@ -237,18 +274,47 @@ const Profile = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Días de Entrenamiento (por semana)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="7"
-                    value={formData.available_days_per_week}
-                    onChange={(e) => setFormData({ ...formData, available_days_per_week: e.target.value })}
-                    disabled={!isEditing}
-                  />
+              <div className="space-y-2">
+                <Label>Días de Entrenamiento</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Selecciona los días que deseas entrenar
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'L', label: 'Lunes' },
+                    { value: 'M', label: 'Martes' },
+                    { value: 'Mi', label: 'Miércoles' },
+                    { value: 'J', label: 'Jueves' },
+                    { value: 'V', label: 'Viernes' },
+                    { value: 'S', label: 'Sábado' },
+                    { value: 'D', label: 'Domingo' },
+                  ].map((day) => (
+                    <Button
+                      key={day.value}
+                      type="button"
+                      variant={formData.available_weekdays.includes(day.value) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (!isEditing) return;
+                        const newDays = formData.available_weekdays.includes(day.value)
+                          ? formData.available_weekdays.filter(d => d !== day.value)
+                          : [...formData.available_weekdays, day.value];
+                        setFormData({ ...formData, available_weekdays: newDays });
+                      }}
+                      disabled={!isEditing}
+                      className="min-w-[80px]"
+                    >
+                      {day.label}
+                    </Button>
+                  ))}
                 </div>
+                {formData.available_weekdays.length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {formData.available_weekdays.length} {formData.available_weekdays.length === 1 ? 'día seleccionado' : 'días seleccionados'}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
