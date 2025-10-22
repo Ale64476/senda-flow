@@ -198,33 +198,33 @@ export type Database = {
           descripcion_plan: string
           dias_semana: number
           ejercicios_ids_ordenados: Json
+          id: string
           lugar: string
           nivel: string
           nombre_plan: string
           objetivo: string
-          plan_id: string
         }
         Insert: {
           created_at?: string
           descripcion_plan: string
           dias_semana: number
           ejercicios_ids_ordenados: Json
+          id: string
           lugar: string
           nivel: string
           nombre_plan: string
           objetivo: string
-          plan_id: string
         }
         Update: {
           created_at?: string
           descripcion_plan?: string
           dias_semana?: number
           ejercicios_ids_ordenados?: Json
+          id?: string
           lugar?: string
           nivel?: string
           nombre_plan?: string
           objetivo?: string
-          plan_id?: string
         }
         Relationships: []
       }

@@ -132,7 +132,7 @@ serve(async (req) => {
         score += 5; // Prefer beginner plans for people with health conditions
       }
 
-      console.log(`Plan ${plan.plan_id} (${plan.nombre_plan}) scored: ${score}`);
+      console.log(`Plan ${plan.id} (${plan.nombre_plan}) scored: ${score}`);
       return { plan, score };
     });
 
@@ -140,7 +140,7 @@ serve(async (req) => {
     scoredPlans.sort((a, b) => b.score - a.score);
     const bestPlan = scoredPlans[0].plan;
 
-    console.log(`Best match: ${bestPlan.plan_id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
+    console.log(`Best match: ${bestPlan.id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
     // Create base workout template from the best plan
     const today = new Date();
@@ -190,7 +190,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Created workout ${newWorkout.id} from plan ${bestPlan.plan_id}`);
+    console.log(`Created workout ${newWorkout.id} from plan ${bestPlan.id}`);
 
     // Add exercises to the workout
     const exercisesIds = bestPlan.ejercicios_ids_ordenados;
