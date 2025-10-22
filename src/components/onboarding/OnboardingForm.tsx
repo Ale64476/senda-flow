@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { calculateMacros, validateProfileData } from "@/lib/macrosCalculator";
 import OnboardingStep1 from "./OnboardingStep1";
 import OnboardingStep2 from "./OnboardingStep2";
 import OnboardingStep3 from "./OnboardingStep3";
@@ -237,7 +238,32 @@ const OnboardingForm = () => {
         console.log("Nuevo usuario creado:", userId);
       }
 
-      // PASO 2: Crear o actualizar el perfil completo en la base de datos
+      // PASO 2: Calcular macros automáticamente basados en el perfil
+      let calculatedMacros = null;
+      
+      if (validateProfileData({
+        gender: formData.gender,
+        age: formData.age,
+        weight: formData.weight,
+        height: formData.height,
+        availableDays: formData.availableDays,
+        fitnessLevel: formData.fitnessLevel,
+        fitnessGoal: formData.primaryGoal
+      })) {
+        calculatedMacros = calculateMacros({
+          gender: formData.gender,
+          age: formData.age,
+          weight: formData.weight,
+          height: formData.height,
+          availableDays: formData.availableDays || 3,
+          fitnessLevel: formData.fitnessLevel,
+          fitnessGoal: formData.primaryGoal
+        });
+        
+        console.log("Macros calculados automáticamente:", calculatedMacros);
+      }
+
+      // PASO 3: Crear o actualizar el perfil completo en la base de datos
       const { error: profileError } = await supabase
         .from("profiles")
         .upsert({
@@ -276,6 +302,11 @@ const OnboardingForm = () => {
           notifications_enabled: formData.notifications ?? true,
           wearables_sync_enabled: formData.wearables || false,
           terms_accepted: formData.termsAccepted,
+          // Asignar los macros calculados automáticamente
+          daily_calorie_goal: calculatedMacros?.dailyCalories || 2000,
+          daily_protein_goal: calculatedMacros?.protein || 150,
+          daily_carbs_goal: calculatedMacros?.carbs || 200,
+          daily_fat_goal: calculatedMacros?.fat || 50,
           onboarding_completed: false // Será completado por la función de backend
         });
 
@@ -284,7 +315,7 @@ const OnboardingForm = () => {
         throw profileError;
       }
 
-      // PASO 3: Crear el rol de usuario (si no existe)
+      // PASO 4: Crear el rol de usuario (si no existe)
       const { error: roleError } = await supabase
         .from("user_roles")
         .insert({
@@ -303,7 +334,7 @@ const OnboardingForm = () => {
       // Limpiar datos temporales
       sessionStorage.removeItem('pendingRegistration');
 
-      // PASO 4: Asignar rutina automáticamente basada en el perfil
+      // PASO 5: Asignar rutina automáticamente basada en el perfil
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("No se encontró una sesión autenticada para asignar la rutina.");
