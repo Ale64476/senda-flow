@@ -39,7 +39,7 @@ jobs:
           name: Notificar a Cline para validación QA
           command: |
             # Asegúrate de haber configurado la variable de entorno CLINE_API_KEY en la configuración de tu proyecto de CircleCI.
-            curl -X POST https://api.cline.bot/validate \
+            curl -X POST https://api.hicap.ai/v2/openai \
             -H "Authorization: Bearer $CLINE_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
