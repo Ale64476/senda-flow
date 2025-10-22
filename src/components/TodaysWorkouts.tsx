@@ -73,11 +73,13 @@ export const TodaysWorkouts = () => {
   const workouts = data?.workouts || [];
 
   return (
-    <Card>
+    <Card className="bg-gradient-card border-primary/20 border-2 shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Dumbbell className="h-5 w-5" />
-          Entrenamientos de Hoy
+          <div className="p-2 rounded-xl bg-gradient-primary text-primary-foreground shadow-card">
+            <Dumbbell className="h-5 w-5" />
+          </div>
+          <span className="flex-1">Entrenamientos de Hoy</span>
           <Badge variant="secondary" className="ml-auto">
             {workouts.length} {workouts.length === 1 ? 'workout' : 'workouts'}
           </Badge>
@@ -94,10 +96,10 @@ export const TodaysWorkouts = () => {
           workouts.map((workout: any) => (
             <div
               key={workout.id}
-              className={`rounded-xl p-4 transition-all shadow-md ${
+              className={`rounded-xl p-4 transition-all border-2 shadow-card ${
                 workout.completed 
-                  ? 'bg-gradient-to-br from-accent/20 to-accent/10 border-2 border-accent/40' 
-                  : 'bg-card border-2 border-primary/20 hover:border-primary/40 hover:shadow-elevated'
+                  ? 'bg-muted/50 border-muted-foreground/30' 
+                  : 'bg-gradient-card border-primary/20 hover:shadow-elevated hover:scale-[1.01]'
               }`}
             >
               <div className="flex items-start justify-between gap-3 mb-3">
