@@ -10,14 +10,13 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
     axis: 'y', 
     loop: false,
     align: 'start',
-    containScroll: 'trimSnaps',
+    containScroll: false,
     dragFree: false,
     skipSnaps: false,
     watchDrag: true,
     watchResize: true,
     watchSlides: true,
-    duration: 20,
-    inViewThreshold: 0.7
+    duration: 25
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -58,13 +57,18 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
         ref={emblaRef}
         style={{ touchAction: 'pan-y' }}
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col" style={{ height: '100%' }}>
           {sections.map((section, index) => (
             <div
               key={index}
-              className="min-h-[calc(100vh-12rem)] flex-[0_0_auto] px-1 flex items-center justify-center pointer-events-auto"
+              className="flex-shrink-0 px-1 flex items-center justify-center"
+              style={{ 
+                height: 'calc(100vh - 12rem)',
+                minHeight: 'calc(100vh - 12rem)',
+                maxHeight: 'calc(100vh - 12rem)'
+              }}
             >
-              <div className="w-full animate-fade-in pointer-events-auto">
+              <div className="w-full h-full overflow-y-auto animate-fade-in pointer-events-auto">
                 {section}
               </div>
             </div>
