@@ -241,26 +241,12 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  // Deshabilitamos temporalmente el Splash para aislar el error de hooks
-  // const [showSplash, setShowSplash] = useState(true);
-  // useEffect(() => {
-  //   const hasSeenSplash = sessionStorage.getItem("hasSeenSplash");
-  //   if (hasSeenSplash) {
-  //     setShowSplash(false);
-  //   }
-  // }, []);
-  // const handleSplashComplete = () => {
-  //   sessionStorage.setItem("hasSeenSplash", "true");
-  //   setShowSplash(false);
-  // };
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          {/* Splash deshabilitado temporalmente */}
           <BrowserRouter>
             <AuthProvider>
               <AppRoutes />
