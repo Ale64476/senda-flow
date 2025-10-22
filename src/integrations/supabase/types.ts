@@ -197,7 +197,7 @@ export type Database = {
           created_at: string
           descripcion_plan: string
           dias_semana: number
-          ejercicios_ids_ordenados: Json
+          ejercicios_ids_ordenados: Json | null
           id: string
           lugar: string
           nivel: string
@@ -208,7 +208,7 @@ export type Database = {
           created_at?: string
           descripcion_plan: string
           dias_semana: number
-          ejercicios_ids_ordenados: Json
+          ejercicios_ids_ordenados?: Json | null
           id: string
           lugar: string
           nivel: string
@@ -219,7 +219,7 @@ export type Database = {
           created_at?: string
           descripcion_plan?: string
           dias_semana?: number
-          ejercicios_ids_ordenados?: Json
+          ejercicios_ids_ordenados?: Json | null
           id?: string
           lugar?: string
           nivel?: string
