@@ -6,10 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface RoutineScore {
-  routine: any;
+interface PlanScore {
+  plan: any;
   score: number;
 }
+
+// Mapeo de objetivos del perfil a objetivos de planes
+const goalMapping: Record<string, string[]> = {
+  'ganar_masa': ['Ganar masa', 'Tonificar'],
+  'perder_peso': ['Perder grasa', 'Tonificar'],
+  'mantener_peso': ['Tonificar', 'Resistencia'],
+  'tonificar': ['Tonificar', 'Perder grasa']
+};
+
+// Mapeo de niveles
+const levelMapping: Record<string, string> = {
+  'principiante': 'Principiante',
+  'intermedio': 'Intermedio',
+  'avanzado': 'Avanzado'
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -40,6 +55,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Assigning routine for user ${user.id}`);
+
     // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -54,78 +71,165 @@ serve(async (req) => {
       );
     }
 
-    // Get all available workouts/routines
-    const { data: workouts, error: workoutsError } = await supabase
-      .from('workouts')
-      .select(`
-        *,
-        workout_exercises(*)
-      `);
+    console.log('User profile:', { 
+      fitness_goal: profile.fitness_goal, 
+      fitness_level: profile.fitness_level,
+      available_days: profile.available_days_per_week,
+      training_types: profile.training_types
+    });
 
-    if (workoutsError || !workouts || workouts.length === 0) {
+    // Get all available predesigned plans
+    const { data: plans, error: plansError } = await supabase
+      .from('predesigned_plans')
+      .select('*');
+
+    if (plansError || !plans || plans.length === 0) {
+      console.error('Error fetching plans:', plansError);
       return new Response(
-        JSON.stringify({ error: 'No routines available' }),
+        JSON.stringify({ error: 'No predesigned plans available' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Score each routine based on user profile
-    const scoredRoutines: RoutineScore[] = workouts.map(workout => {
+    console.log(`Found ${plans.length} predesigned plans`);
+
+    // Score each plan based on user profile
+    const scoredPlans: PlanScore[] = plans.map(plan => {
       let score = 0;
       
-      // Match duration with available time
-      if (workout.duration_minutes && profile.session_duration_minutes) {
-        const timeDiff = Math.abs(workout.duration_minutes - profile.session_duration_minutes);
-        score += Math.max(0, 10 - timeDiff / 10);
+      // Match fitness goal (highest priority)
+      const userGoals = goalMapping[profile.fitness_goal] || [];
+      if (userGoals.includes(plan.objetivo)) {
+        score += 50;
+        if (userGoals[0] === plan.objetivo) {
+          score += 20; // Extra points for primary match
+        }
       }
 
-      // Match fitness level (if stored in workout description or location)
-      if (profile.fitness_level === 'principiante') {
-        score += workout.location === 'casa' ? 5 : 0;
-      } else if (profile.fitness_level === 'intermedio') {
-        score += 3;
-      } else if (profile.fitness_level === 'avanzado') {
-        score += workout.location === 'gimnasio' ? 5 : 0;
+      // Match fitness level (very important)
+      const userLevel = levelMapping[profile.fitness_level];
+      if (plan.nivel === userLevel) {
+        score += 30;
+      } else if (
+        (profile.fitness_level === 'principiante' && plan.nivel === 'Intermedio') ||
+        (profile.fitness_level === 'intermedio' && plan.nivel === 'Avanzado')
+      ) {
+        score += 10; // Slightly higher level for progression
       }
 
-      // Consider health conditions - avoid high intensity if there are health issues
-      if (profile.health_conditions && profile.health_conditions.length > 0) {
-        score -= 2; // Slightly lower score for more cautious approach
+      // Match days per week availability
+      if (profile.available_days_per_week >= plan.dias_semana) {
+        const daysDiff = Math.abs(profile.available_days_per_week - plan.dias_semana);
+        score += Math.max(0, 20 - daysDiff * 3);
       }
 
-      // Gender considerations for menstrual cycle tracking
-      if (profile.gender === 'female' && profile.menstrual_tracking_enabled) {
-        score += 2; // Prefer routines that can be adapted
+      // Match training location preference
+      if (profile.training_types && Array.isArray(profile.training_types)) {
+        const placePreference = plan.lugar.toLowerCase();
+        if (
+          (placePreference.includes('casa') && profile.training_types.includes('Casa')) ||
+          (placePreference.includes('gimnasio') && profile.training_types.includes('Gimnasio'))
+        ) {
+          score += 15;
+        }
       }
 
-      return { routine: workout, score };
+      // Consider health conditions
+      if (profile.health_conditions && profile.health_conditions.length > 0 && 
+          plan.nivel === 'Principiante') {
+        score += 5; // Prefer beginner plans for people with health conditions
+      }
+
+      console.log(`Plan ${plan.plan_id} (${plan.nombre_plan}) scored: ${score}`);
+      return { plan, score };
     });
 
     // Sort by score and pick the best match
-    scoredRoutines.sort((a, b) => b.score - a.score);
-    const bestRoutine = scoredRoutines[0].routine;
+    scoredPlans.sort((a, b) => b.score - a.score);
+    const bestPlan = scoredPlans[0].plan;
 
-    // Assign routine to user
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ assigned_routine_id: bestRoutine.id })
-      .eq('id', user.id);
+    console.log(`Best match: ${bestPlan.plan_id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
-    if (updateError) {
-      console.error('Error assigning routine:', updateError);
+    // Create a workout from the best plan
+    const workoutDate = new Date();
+    workoutDate.setHours(0, 0, 0, 0);
+
+    const { data: newWorkout, error: workoutError } = await supabase
+      .from('workouts')
+      .insert({
+        user_id: user.id,
+        name: bestPlan.nombre_plan,
+        description: bestPlan.descripcion_plan,
+        location: bestPlan.lugar.toLowerCase().includes('gimnasio') ? 'gimnasio' : 'casa',
+        scheduled_date: workoutDate.toISOString().split('T')[0],
+        completed: false,
+        duration_minutes: profile.session_duration_minutes || 60
+      })
+      .select()
+      .single();
+
+    if (workoutError || !newWorkout) {
+      console.error('Error creating workout:', workoutError);
       return new Response(
-        JSON.stringify({ error: 'Failed to assign routine' }),
+        JSON.stringify({ error: 'Failed to create workout from plan' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Assigned routine ${bestRoutine.id} to user ${user.id}`);
+    console.log(`Created workout ${newWorkout.id} from plan ${bestPlan.plan_id}`);
+
+    // Add exercises to the workout
+    const exercisesIds = bestPlan.ejercicios_ids_ordenados;
+    if (exercisesIds && Array.isArray(exercisesIds)) {
+      const { data: exercises, error: exercisesError } = await supabase
+        .from('exercises')
+        .select('*')
+        .in('id', exercisesIds);
+
+      if (!exercisesError && exercises && exercises.length > 0) {
+        const workoutExercises = exercises.map(exercise => ({
+          workout_id: newWorkout.id,
+          name: exercise.nombre,
+          sets: exercise.series_sugeridas || 3,
+          reps: exercise.repeticiones_sugeridas || 10,
+          duration_minutes: exercise.duracion_promedio_segundos ? Math.ceil(exercise.duracion_promedio_segundos / 60) : null,
+          notes: exercise.descripcion
+        }));
+
+        const { error: insertExercisesError } = await supabase
+          .from('workout_exercises')
+          .insert(workoutExercises);
+
+        if (insertExercisesError) {
+          console.error('Error adding exercises to workout:', insertExercisesError);
+        } else {
+          console.log(`Added ${workoutExercises.length} exercises to workout`);
+        }
+      }
+    }
+
+    // Assign workout to user profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ assigned_routine_id: newWorkout.id })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Error assigning routine to profile:', updateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to assign routine to profile' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Assigned workout ${newWorkout.id} to user ${user.id}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        routine: bestRoutine,
-        message: 'Routine assigned successfully'
+        routine: newWorkout,
+        plan: bestPlan,
+        message: `Plan "${bestPlan.nombre_plan}" asignado exitosamente`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

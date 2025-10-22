@@ -294,7 +294,24 @@ const OnboardingForm = () => {
       // Limpiar datos temporales
       sessionStorage.removeItem('pendingRegistration');
 
-      toast.success("¡Cuenta creada exitosamente! Bienvenida a SendaFit 🎉");
+      // PASO 4: Asignar rutina automáticamente basada en el perfil
+      try {
+        const { data: routineData, error: routineError } = await supabase.functions.invoke('assign-routine', {
+          method: 'POST'
+        });
+
+        if (routineError) {
+          console.error("Error al asignar rutina:", routineError);
+          toast.warning("Cuenta creada, pero hubo un error al asignar tu rutina. Puedes asignarla después desde el dashboard.");
+        } else {
+          console.log("Rutina asignada:", routineData);
+          toast.success(`¡Cuenta creada! Se te asignó el plan: ${routineData.plan?.nombre_plan || 'personalizado'} 🎉`);
+        }
+      } catch (error) {
+        console.error("Error al asignar rutina:", error);
+        toast.warning("Cuenta creada exitosamente. Puedes configurar tu rutina desde el dashboard.");
+      }
+
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error en handleSubmit:", error);
