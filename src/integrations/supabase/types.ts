@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      foods: {
+        Row: {
+          calorias: number
+          carbohidratos: number
+          created_at: string
+          grasas: number
+          id: number
+          nombre: string
+          proteinas: number
+          racion: number
+          unidad: string
+        }
+        Insert: {
+          calorias: number
+          carbohidratos: number
+          created_at?: string
+          grasas: number
+          id?: number
+          nombre: string
+          proteinas: number
+          racion: number
+          unidad: string
+        }
+        Update: {
+          calorias?: number
+          carbohidratos?: number
+          created_at?: string
+          grasas?: number
+          id?: number
+          nombre?: string
+          proteinas?: number
+          racion?: number
+          unidad?: string
+        }
+        Relationships: []
+      }
       health_data: {
         Row: {
           created_at: string
