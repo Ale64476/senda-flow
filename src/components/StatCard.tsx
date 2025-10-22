@@ -58,7 +58,7 @@ export const StatCard = ({
             ? "bg-primary/10 text-primary" 
             : "bg-white/25 backdrop-blur-sm text-white"
         )}>
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
         </div>
       </div>
     </Card>
