@@ -73,6 +73,26 @@ serve(async (req) => {
       training_types: profile.training_types
     });
 
+    // Check if user already has workouts for this week
+    const { data: existingWorkouts } = await supabase
+      .from('workouts')
+      .select('id')
+      .eq('user_id', user.id)
+      .gte('scheduled_date', monday.toISOString().split('T')[0])
+      .eq('tipo', 'automatico');
+
+    if (existingWorkouts && existingWorkouts.length > 0) {
+      console.log('User already has workouts for this week, skipping assignment');
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'User already has workouts assigned for this week',
+          workouts_existing: existingWorkouts.length
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get all available predesigned plans
     const { data: plans, error: plansError } = await supabase
       .from('predesigned_plans')
@@ -262,6 +282,12 @@ serve(async (req) => {
       const dayExercises = exercisesByDay[dayNum];
       if (!dayExercises || dayExercises.length === 0) continue;
 
+      // Validate dayNum is within reasonable range (1-7)
+      if (dayNum < 1 || dayNum > 7) {
+        console.warn(`Invalid day number: ${dayNum}, skipping`);
+        continue;
+      }
+
       // Calculate date for this day (starting from Monday)
       const workoutDate = new Date(monday);
       workoutDate.setDate(monday.getDate() + dayNum - 1);
@@ -316,17 +342,24 @@ serve(async (req) => {
 
       // Add exercises to the workout
       if (exercises && exercises.length > 0) {
-        const workoutExercises = exercises.map((pe: any) => {
-          const exercise = pe.exercises;
-          return {
-            workout_id: workout.id,
-            name: exercise.nombre,
-            sets: exercise.series_sugeridas || 3,
-            reps: exercise.repeticiones_sugeridas || 10,
-            notes: `${exercise.grupo_muscular} - ${exercise.nivel}`,
-            duration_minutes: exercise.duracion_promedio_segundos ? Math.ceil(exercise.duracion_promedio_segundos / 60) : null,
-          };
-        });
+        const workoutExercises = exercises
+          .filter((pe: any) => pe.exercises && pe.exercises.nombre) // Filter out null exercises
+          .map((pe: any) => {
+            const exercise = pe.exercises;
+            return {
+              workout_id: workout.id,
+              name: exercise.nombre,
+              sets: exercise.series_sugeridas || 3,
+              reps: exercise.repeticiones_sugeridas || 10,
+              notes: `${exercise.grupo_muscular || 'General'} - ${exercise.nivel || 'B'}`,
+              duration_minutes: exercise.duracion_promedio_segundos ? Math.ceil(exercise.duracion_promedio_segundos / 60) : null,
+            };
+          });
+
+        if (workoutExercises.length === 0) {
+          console.warn('No valid exercises found for workout:', workout.id);
+          continue;
+        }
 
         const { error: exercisesError } = await supabase
           .from('workout_exercises')
