@@ -12,7 +12,9 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
     align: 'start',
     containScroll: 'trimSnaps',
     dragFree: false,
-    skipSnaps: false
+    skipSnaps: false,
+    watchDrag: true,
+    watchResize: true
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -33,7 +35,11 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
 
   return (
     <div className="relative h-[calc(100vh-12rem)]">
-      <div className="overflow-hidden h-full" ref={emblaRef}>
+      <div 
+        className="overflow-hidden h-full touch-pan-y" 
+        ref={emblaRef}
+        style={{ touchAction: 'pan-y' }}
+      >
         <div className="flex flex-col">
           {sections.map((section, index) => (
             <div
