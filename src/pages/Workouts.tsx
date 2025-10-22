@@ -441,8 +441,8 @@ const Workouts = () => {
             </div>
 
             {otherDaysWorkouts.length > 0 && (
-              <Collapsible open={otherDaysOpen} onOpenChange={setOtherDaysOpen}>
-                <Card className="p-4 bg-muted/30">
+              <Card className="p-4 bg-muted/30">
+                <Collapsible open={otherDaysOpen} onOpenChange={setOtherDaysOpen}>
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -504,8 +504,8 @@ const Workouts = () => {
                       </Card>
                     ))}
                   </CollapsibleContent>
-                </Card>
-              </Collapsible>
+                </Collapsible>
+              </Card>
             )}
           </div>
         </div>
