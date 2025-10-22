@@ -6,8 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { RoutineManager } from "@/components/RoutineManager";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -50,13 +53,28 @@ const Dashboard = () => {
           setTodayMacros(totals);
         }
 
+        // Fetch today's scheduled workouts
         const { data: workoutsData } = await supabase
           .from("workouts")
-          .select("*")
+          .select("*, workout_exercises(*)")
           .eq("user_id", user.id)
           .eq("scheduled_date", today);
 
         setTodayWorkouts(workoutsData || []);
+
+        // If no workouts today but user has assigned routine, show that
+        if ((!workoutsData || workoutsData.length === 0) && profileData?.assigned_routine_id) {
+          const { data: assignedWorkout } = await supabase
+            .from("workouts")
+            .select("*, workout_exercises(*)")
+            .eq("id", profileData.assigned_routine_id)
+            .single();
+
+          if (assignedWorkout) {
+            // Show assigned routine as today's workout
+            setTodayWorkouts([assignedWorkout]);
+          }
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -184,6 +202,8 @@ const Dashboard = () => {
               )}
             </Card>
           </div>
+
+          <RoutineManager />
 
           <Card className="p-6 shadow-card bg-gradient-card">
             <h3 className="text-xl font-semibold mb-4">Consejos del Día</h3>

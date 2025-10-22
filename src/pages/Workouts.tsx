@@ -6,24 +6,35 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, CheckCircle2, Circle } from "lucide-react";
+import { Plus, CheckCircle2, Circle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AddExerciseDialog } from "@/components/AddExerciseDialog";
+
+interface ConfiguredExercise {
+  exercise: {
+    id: string;
+    nombre: string;
+    descripcion: string;
+  };
+  series: number;
+  repeticiones: number;
+  peso: number;
+  estimatedCalories: number;
+}
 
 const Workouts = () => {
   const { user } = useAuth();
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
+  const [configuredExercises, setConfiguredExercises] = useState<ConfiguredExercise[]>([]);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     location: "casa",
-    estimated_calories: "",
-    duration_minutes: "",
     scheduled_date: format(new Date(), "yyyy-MM-dd"),
   });
 
@@ -34,31 +45,108 @@ const Workouts = () => {
   const fetchWorkouts = async () => {
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("workouts")
-      .select("*")
+      .select("*, workout_exercises(*)")
       .eq("user_id", user.id)
       .order("scheduled_date", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching workouts:", error);
+      return;
+    }
+
     setWorkouts(data || []);
+
+    // If no workouts, check if user has an assigned routine
+    if ((!data || data.length === 0)) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("assigned_routine_id")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.assigned_routine_id) {
+        const { data: assignedWorkout } = await supabase
+          .from("workouts")
+          .select("*, workout_exercises(*)")
+          .eq("id", profile.assigned_routine_id)
+          .single();
+
+        if (assignedWorkout) {
+          setWorkouts([assignedWorkout]);
+        }
+      }
+    }
+  };
+
+  const handleAddExercise = (exercise: ConfiguredExercise) => {
+    setConfiguredExercises([...configuredExercises, exercise]);
+  };
+
+  const handleRemoveExercise = (index: number) => {
+    setConfiguredExercises(configuredExercises.filter((_, i) => i !== index));
+  };
+
+  const getTotalCalories = () => {
+    return configuredExercises.reduce((total, ex) => total + ex.estimatedCalories, 0);
+  };
+
+  const getTotalDuration = () => {
+    // Estimamos 3 segundos por repetición + 60 segundos de descanso entre series
+    const totalSeconds = configuredExercises.reduce((total, ex) => {
+      const repTime = ex.repeticiones * ex.series * 3;
+      const restTime = (ex.series - 1) * 60;
+      return total + repTime + restTime;
+    }, 0);
+    return Math.round(totalSeconds / 60);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { error } = await supabase.from("workouts").insert([{
-      user_id: user?.id!,
-      name: formData.name,
-      description: formData.description,
-      location: formData.location as any,
-      estimated_calories: parseInt(formData.estimated_calories) || 0,
-      duration_minutes: parseInt(formData.duration_minutes) || 0,
-      scheduled_date: formData.scheduled_date,
-      completed: false,
-    }]);
+    if (configuredExercises.length === 0) {
+      toast.error("Agrega al menos un ejercicio");
+      return;
+    }
 
-    if (error) {
+    const totalCalories = getTotalCalories();
+    const totalDuration = getTotalDuration();
+
+    const { data: workoutData, error: workoutError } = await supabase
+      .from("workouts")
+      .insert([{
+        user_id: user?.id!,
+        name: formData.name,
+        location: formData.location as any,
+        estimated_calories: totalCalories,
+        duration_minutes: totalDuration,
+        scheduled_date: formData.scheduled_date,
+        completed: false,
+      }])
+      .select()
+      .single();
+
+    if (workoutError) {
       toast.error("Error al crear entrenamiento");
+      return;
+    }
+
+    // Insertar ejercicios
+    const exercisesToInsert = configuredExercises.map(ex => ({
+      workout_id: workoutData.id,
+      name: ex.exercise.nombre,
+      sets: ex.series,
+      reps: ex.repeticiones,
+      notes: ex.peso > 0 ? `Peso: ${ex.peso}kg` : undefined
+    }));
+
+    const { error: exercisesError } = await supabase
+      .from("workout_exercises")
+      .insert(exercisesToInsert);
+
+    if (exercisesError) {
+      toast.error("Error al agregar ejercicios");
       return;
     }
 
@@ -66,12 +154,10 @@ const Workouts = () => {
     setOpen(false);
     setFormData({
       name: "",
-      description: "",
       location: "casa",
-      estimated_calories: "",
-      duration_minutes: "",
       scheduled_date: format(new Date(), "yyyy-MM-dd"),
     });
+    setConfiguredExercises([]);
     fetchWorkouts();
   };
 
@@ -163,7 +249,7 @@ const Workouts = () => {
                   Nuevo Entrenamiento
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Crear Entrenamiento</DialogTitle>
                 </DialogHeader>
@@ -177,16 +263,7 @@ const Workouts = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Descripción</Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({ ...formData, description: e.target.value })
-                      }
-                      placeholder="Detalles del entrenamiento..."
-                    />
-                  </div>
+                  
                   <div className="space-y-2">
                     <Label>Ubicación</Label>
                     <Select
@@ -203,28 +280,7 @@ const Workouts = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Duración (min)</Label>
-                      <Input
-                        type="number"
-                        value={formData.duration_minutes}
-                        onChange={(e) =>
-                          setFormData({ ...formData, duration_minutes: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Calorías (aprox)</Label>
-                      <Input
-                        type="number"
-                        value={formData.estimated_calories}
-                        onChange={(e) =>
-                          setFormData({ ...formData, estimated_calories: e.target.value })
-                        }
-                      />
-                    </div>
-                  </div>
+
                   <div className="space-y-2">
                     <Label>Fecha Programada</Label>
                     <Input
@@ -236,6 +292,69 @@ const Workouts = () => {
                       required
                     />
                   </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Ejercicios</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExerciseDialogOpen(true)}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Agregar Ejercicio
+                      </Button>
+                    </div>
+
+                    {configuredExercises.length === 0 ? (
+                      <div className="p-4 border border-dashed rounded-lg text-center text-muted-foreground">
+                        No hay ejercicios agregados
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {configuredExercises.map((ex, index) => (
+                          <div key={index} className="p-3 bg-muted rounded-lg flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium">{ex.exercise.nombre}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {ex.series} series × {ex.repeticiones} reps
+                                {ex.peso > 0 && ` • ${ex.peso}kg`}
+                              </p>
+                              <p className="text-sm text-primary font-medium">
+                                ~{ex.estimatedCalories} kcal
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveExercise(index)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {configuredExercises.length > 0 && (
+                      <div className="p-4 bg-primary/10 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Total Estimado:</span>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-primary">
+                              {getTotalCalories()} kcal
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              ~{getTotalDuration()} minutos
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <Button type="submit" className="w-full">
                     Crear Entrenamiento
                   </Button>
@@ -243,6 +362,13 @@ const Workouts = () => {
               </DialogContent>
             </Dialog>
           </div>
+
+          <AddExerciseDialog
+            open={exerciseDialogOpen}
+            onOpenChange={setExerciseDialogOpen}
+            onAddExercise={handleAddExercise}
+            location={formData.location}
+          />
 
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
