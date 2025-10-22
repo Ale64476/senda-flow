@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@5.1.0
-
 jobs:
   build-and-test:
     docker:
@@ -10,15 +7,15 @@ jobs:
     steps:
       - checkout
       
-      # Restaurar caché de dependencias
+      # Restaurar caché de dependencias para acelerar la instalación
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package-lock.json" }}
             - v1-dependencies-
       
-      # Instalar dependencias
+      # Instalar dependencias usando npm ci para consistencia
       - run:
-          name: Install Dependencies
+          name: Instalar Dependencias
           command: npm ci
       
       # Guardar caché de dependencias
@@ -27,22 +24,37 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
       
-      # Ejecutar linter
+      # Ejecutar linter (no falla el build si hay errores)
       - run:
-          name: Run Linter
+          name: Ejecutar Linter
           command: npm run lint || true
       
       # Build del proyecto
       - run:
-          name: Build Project
+          name: Build del Proyecto
           command: npm run build
+
+      # Notificar a Cline (el paso que añadimos originalmente)
+      - run:
+          name: Notificar a Cline para validación QA
+          command: |
+            # Asegúrate de haber configurado la variable de entorno CLINE_API_KEY en la configuración de tu proyecto de CircleCI.
+            curl -X POST https://api.cline.bot/validate \
+            -H "Authorization: Bearer $CLINE_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repo": "senda-flow",
+              "branch": "main",
+              "status": "success",
+              "build_url": "'"$CIRCLE_BUILD_URL"'"
+            }'
       
-      # Guardar artefactos del build
+      # Guardar artefactos del build para inspección
       - store_artifacts:
           path: dist
           destination: build-output
       
-      # Persistir el workspace para otros jobs
+      # Persistir el workspace para que otros jobs puedan usar el resultado del build
       - persist_to_workspace:
           root: .
           paths:
