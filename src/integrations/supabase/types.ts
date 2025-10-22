@@ -232,6 +232,7 @@ export type Database = {
         Row: {
           age: number | null
           allergies_restrictions: string | null
+          assigned_routine_id: string | null
           available_days_per_week: number | null
           average_sleep_hours: number | null
           created_at: string
@@ -271,6 +272,7 @@ export type Database = {
         Insert: {
           age?: number | null
           allergies_restrictions?: string | null
+          assigned_routine_id?: string | null
           available_days_per_week?: number | null
           average_sleep_hours?: number | null
           created_at?: string
@@ -310,6 +312,7 @@ export type Database = {
         Update: {
           age?: number | null
           allergies_restrictions?: string | null
+          assigned_routine_id?: string | null
           available_days_per_week?: number | null
           average_sleep_hours?: number | null
           created_at?: string
@@ -346,7 +349,15 @@ export type Database = {
           wearables_sync_enabled?: boolean | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_routine_id_fkey"
+            columns: ["assigned_routine_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       progress_logs: {
         Row: {
@@ -379,6 +390,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      progress_tracking: {
+        Row: {
+          body_measurements: Json | null
+          created_at: string
+          date: string
+          energy_level: number | null
+          exercises_completed: Json | null
+          id: string
+          menstrual_phase: string | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+          weight: number | null
+          workout_id: string | null
+        }
+        Insert: {
+          body_measurements?: Json | null
+          created_at?: string
+          date?: string
+          energy_level?: number | null
+          exercises_completed?: Json | null
+          id?: string
+          menstrual_phase?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+          workout_id?: string | null
+        }
+        Update: {
+          body_measurements?: Json | null
+          created_at?: string
+          date?: string
+          energy_level?: number | null
+          exercises_completed?: Json | null
+          id?: string
+          menstrual_phase?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_tracking_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
         ]
