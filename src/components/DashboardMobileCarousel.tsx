@@ -15,7 +15,9 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
     skipSnaps: false,
     watchDrag: true,
     watchResize: true,
-    watchSlides: true
+    watchSlides: true,
+    duration: 20,
+    inViewThreshold: 0.7
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
