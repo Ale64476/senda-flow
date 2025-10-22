@@ -6,7 +6,14 @@ interface DashboardMobileCarouselProps {
 }
 
 export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ axis: 'y', loop: false });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    axis: 'y', 
+    loop: false,
+    align: 'start',
+    containScroll: 'trimSnaps',
+    dragFree: false,
+    skipSnaps: false
+  });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
@@ -27,11 +34,11 @@ export function DashboardMobileCarousel({ sections }: DashboardMobileCarouselPro
   return (
     <div className="relative h-[calc(100vh-12rem)]">
       <div className="overflow-hidden h-full" ref={emblaRef}>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col">
           {sections.map((section, index) => (
             <div
               key={index}
-              className="flex-[0_0_100%] min-h-0 px-1 flex items-center"
+              className="min-h-[calc(100vh-12rem)] flex-[0_0_auto] px-1 flex items-center justify-center"
             >
               <div className="w-full animate-fade-in">
                 {section}
