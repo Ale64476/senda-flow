@@ -180,42 +180,61 @@ const OnboardingForm = () => {
     
     setLoading(true);
     try {
-      // Obtener datos del registro pendiente
-      const pendingRegString = sessionStorage.getItem('pendingRegistration');
+      // Verificar si hay un usuario ya autenticado
+      const { data: { user: existingUser } } = await supabase.auth.getUser();
       
-      if (!pendingRegString) {
-        toast.error("Error: No hay registro pendiente. Redirigiendo a la página de registro...", {
-          duration: 3000,
+      let userId: string;
+      let userFullName: string;
+
+      if (existingUser) {
+        // Usuario ya existe, solo crear/actualizar perfil
+        userId = existingUser.id;
+        userFullName = formData.fullName || existingUser.user_metadata?.full_name || existingUser.email?.split('@')[0] || 'Usuario';
+        
+        console.log("Usuario autenticado encontrado, actualizando perfil:", userId);
+      } else {
+        // No hay usuario autenticado, verificar registro pendiente
+        const pendingRegString = sessionStorage.getItem('pendingRegistration');
+        
+        if (!pendingRegString) {
+          toast.error("Error: No hay registro pendiente. Redirigiendo a la página de registro...", {
+            duration: 3000,
+          });
+          setTimeout(() => {
+            navigate("/auth", { replace: true });
+          }, 1500);
+          return;
+        }
+
+        const pendingReg = JSON.parse(pendingRegString);
+        
+        // Crear usuario nuevo en Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: pendingReg.email,
+          password: pendingReg.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: {
+              full_name: pendingReg.fullName,
+            },
+          },
         });
-        setTimeout(() => {
-          navigate("/auth", { replace: true });
-        }, 1500);
-        return;
+
+        if (authError) throw authError;
+        if (!authData.user) throw new Error("No se pudo crear el usuario");
+        
+        userId = authData.user.id;
+        userFullName = formData.fullName || pendingReg.fullName;
+        
+        console.log("Nuevo usuario creado:", userId);
       }
 
-      const pendingReg = JSON.parse(pendingRegString);
-      
-      // PASO 1: Crear usuario en Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: pendingReg.email,
-        password: pendingReg.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: pendingReg.fullName,
-          },
-        },
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("No se pudo crear el usuario");
-
-      // PASO 2: Crear el perfil completo en la base de datos
+      // PASO 2: Crear o actualizar el perfil completo en la base de datos
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert({
-          id: authData.user.id,
-          full_name: formData.fullName || pendingReg.fullName,
+        .upsert({
+          id: userId,
+          full_name: userFullName,
           age: formData.age,
           gender: formData.gender,
           height: formData.height,
@@ -256,17 +275,22 @@ const OnboardingForm = () => {
         throw profileError;
       }
 
-      // PASO 3: Crear el rol de usuario
+      // PASO 3: Crear el rol de usuario (si no existe)
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({
-          user_id: authData.user.id,
+        .upsert({
+          user_id: userId,
           role: 'user'
+        }, {
+          onConflict: 'user_id'
         });
 
       if (roleError) {
         console.error("Error al crear rol de usuario:", roleError);
-        throw roleError;
+        // No lanzar error si ya existe el rol
+        if (!roleError.message.includes("duplicate") && !roleError.code?.includes("23505")) {
+          throw roleError;
+        }
       }
 
       // Limpiar datos temporales
