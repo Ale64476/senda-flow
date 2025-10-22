@@ -50,7 +50,7 @@ export const UpgradeModal = ({
             <div className="bg-gradient-card p-4 rounded-lg mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold">Plan PRO</span>
-                <span className="text-2xl font-bold">$9.99<span className="text-sm text-muted-foreground">/mes</span></span>
+                <span className="text-2xl font-bold">$4.99<span className="text-sm text-muted-foreground">/mes</span></span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Desbloquea todas las funcionalidades premium y lleva tu entrenamiento al siguiente nivel
