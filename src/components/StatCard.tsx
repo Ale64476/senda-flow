@@ -34,18 +34,18 @@ export const StatCard = ({
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-2">
+        <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
           <p className={cn(
-            "text-xs sm:text-sm font-semibold truncate",
+            "text-[10px] sm:text-xs font-semibold truncate",
             variant === "default" ? "text-muted-foreground" : "opacity-90"
           )}>
             {title}
           </p>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black truncate">{value}</p>
+          <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">{value}</p>
           {subtitle && (
             <p className={cn(
-              "text-[10px] sm:text-xs truncate font-medium leading-tight",
+              "text-[9px] sm:text-[10px] truncate font-medium leading-tight",
               variant === "default" ? "text-muted-foreground" : "opacity-80"
             )}>
               {subtitle}
@@ -53,12 +53,12 @@ export const StatCard = ({
           )}
         </div>
         <div className={cn(
-          "p-3 sm:p-3.5 lg:p-4 rounded-2xl flex-shrink-0 shadow-card",
+          "p-2 sm:p-2.5 lg:p-3 rounded-xl flex-shrink-0 shadow-card",
           variant === "default" 
             ? "bg-gradient-primary text-primary-foreground" 
             : "bg-white/20 backdrop-blur-sm text-white"
         )}>
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
         </div>
       </div>
     </Card>
