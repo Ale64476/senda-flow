@@ -56,58 +56,41 @@ const Calendar = () => {
             <DashboardMobileCarousel
               sections={[
                 // Primera división: Días de la semana
-                <div className="h-full p-3 overflow-y-auto" key="week-days">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="h-full pt-4 px-3 overflow-x-hidden" key="week-days">
+                  <div className="flex justify-around items-center gap-1">
                     {weekDays.map((day) => {
-                      const dayWorkouts = getWorkoutsForDate(day);
                       const isToday = isSameDay(day, new Date());
                       const isSelected = isSameDay(day, selectedDate);
+                      const dayWorkouts = getWorkoutsForDate(day);
+                      const hasWorkouts = dayWorkouts.length > 0;
 
                       return (
-                        <Card
+                        <div
                           key={day.toISOString()}
-                          className={`p-3 cursor-pointer transition-all ${
-                            isToday ? "border-primary border-2" : ""
-                          } ${isSelected ? "bg-primary/10" : ""}`}
+                          className="flex flex-col items-center gap-1"
                           onClick={() => setSelectedDate(day)}
                         >
-                          <div className="text-center mb-2">
-                            <p className="text-xs font-medium text-muted-foreground uppercase">
+                          <div
+                            className={`w-12 h-12 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all ${
+                              isToday
+                                ? "border-primary border-2"
+                                : "border border-border"
+                            } ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : hasWorkouts
+                                ? "bg-primary/20"
+                                : "bg-background"
+                            }`}
+                          >
+                            <p className="text-[10px] font-medium uppercase leading-tight">
                               {format(day, "EEE", { locale: es })}
                             </p>
-                            <p className="text-xl font-bold">
+                            <p className="text-base font-bold leading-tight">
                               {format(day, "d", { locale: es })}
                             </p>
-                            {isToday && (
-                              <span className="text-xs text-primary font-medium">Hoy</span>
-                            )}
                           </div>
-                          <div className="space-y-1.5">
-                            {dayWorkouts.length === 0 ? (
-                              <p className="text-xs text-muted-foreground text-center">
-                                Sin entrenamientos
-                              </p>
-                            ) : (
-                              dayWorkouts.map((workout) => (
-                                <div
-                                  key={workout.id}
-                                  className={`text-xs p-1.5 rounded ${
-                                    workout.completed
-                                      ? "bg-primary/20 text-primary"
-                                      : "bg-muted"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-1">
-                                    {workout.completed && (
-                                      <CheckCircle2 className="w-3 h-3" />
-                                    )}
-                                    <span className="truncate">{workout.name}</span>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </Card>
+                        </div>
                       );
                     })}
                   </div>
