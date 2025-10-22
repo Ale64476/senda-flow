@@ -27,6 +27,11 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
 
+      # Ejecutar pruebas
+      - run:
+          name: Run Tests
+          command: npm test
+
       # Ejecutar linter
       - run:
           name: Run Linter
