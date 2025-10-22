@@ -66,7 +66,7 @@ const Profile = () => {
         age: profileData.age?.toString() || "",
         available_days_per_week: profileData.available_days_per_week?.toString() || "",
         available_weekdays: Array.isArray(profileData.available_weekdays) 
-          ? profileData.available_weekdays.map(String) 
+          ? [...new Set(profileData.available_weekdays.map(String))] 
           : [],
         daily_calorie_goal: profileData.daily_calorie_goal?.toString() || "",
         daily_protein_goal: profileData.daily_protein_goal?.toString() || "",
@@ -123,7 +123,7 @@ const Profile = () => {
         height: parseFloat(formData.height) || null,
         age: parseInt(formData.age) || null,
         available_days_per_week: formData.available_weekdays.length || null,
-        available_weekdays: (formData.available_weekdays.length > 0 ? formData.available_weekdays : null) as any,
+        available_weekdays: (formData.available_weekdays.length > 0 ? [...new Set(formData.available_weekdays)] : null) as any,
         // Usar macros calculados si están disponibles, si no mantener los valores actuales
         daily_calorie_goal: calculatedMacros?.dailyCalories || parseInt(formData.daily_calorie_goal) || 2000,
         daily_protein_goal: calculatedMacros?.protein || parseInt(formData.daily_protein_goal) || 150,
@@ -298,10 +298,13 @@ const Profile = () => {
                       size="sm"
                       onClick={() => {
                         if (!isEditing) return;
-                        const newDays = formData.available_weekdays.includes(day.value)
-                          ? formData.available_weekdays.filter(d => d !== day.value)
-                          : [...formData.available_weekdays, day.value];
-                        setFormData({ ...formData, available_weekdays: newDays });
+                        const currentDays = [...formData.available_weekdays];
+                        const newDays = currentDays.includes(day.value)
+                          ? currentDays.filter(d => d !== day.value)
+                          : [...currentDays, day.value];
+                        // Asegurar que no haya duplicados
+                        const uniqueDays = [...new Set(newDays)];
+                        setFormData({ ...formData, available_weekdays: uniqueDays });
                       }}
                       disabled={!isEditing}
                       className="min-w-[80px]"
