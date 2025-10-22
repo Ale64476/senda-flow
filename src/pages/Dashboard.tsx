@@ -53,13 +53,28 @@ const Dashboard = () => {
           setTodayMacros(totals);
         }
 
+        // Fetch today's scheduled workouts
         const { data: workoutsData } = await supabase
           .from("workouts")
-          .select("*")
+          .select("*, workout_exercises(*)")
           .eq("user_id", user.id)
           .eq("scheduled_date", today);
 
         setTodayWorkouts(workoutsData || []);
+
+        // If no workouts today but user has assigned routine, show that
+        if ((!workoutsData || workoutsData.length === 0) && profileData?.assigned_routine_id) {
+          const { data: assignedWorkout } = await supabase
+            .from("workouts")
+            .select("*, workout_exercises(*)")
+            .eq("id", profileData.assigned_routine_id)
+            .single();
+
+          if (assignedWorkout) {
+            // Show assigned routine as today's workout
+            setTodayWorkouts([assignedWorkout]);
+          }
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {

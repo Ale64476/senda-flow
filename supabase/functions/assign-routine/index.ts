@@ -142,9 +142,27 @@ serve(async (req) => {
 
     console.log(`Best match: ${bestPlan.plan_id} - ${bestPlan.nombre_plan} (score: ${scoredPlans[0].score})`);
 
-    // Create a workout from the best plan
+    // Create base workout template from the best plan
     const workoutDate = new Date();
     workoutDate.setHours(0, 0, 0, 0);
+
+    // Calculate estimated calories based on exercises
+    let estimatedCalories = 0;
+    const planExercisesIds = bestPlan.ejercicios_ids_ordenados;
+    
+    if (planExercisesIds && Array.isArray(planExercisesIds)) {
+      const { data: exercises } = await supabase
+        .from('exercises')
+        .select('calorias_por_repeticion, repeticiones_sugeridas, series_sugeridas')
+        .in('id', planExercisesIds);
+
+      if (exercises && exercises.length > 0) {
+        estimatedCalories = exercises.reduce((total, ex) => {
+          const cals = (ex.calorias_por_repeticion || 0) * (ex.repeticiones_sugeridas || 10) * (ex.series_sugeridas || 3);
+          return total + cals;
+        }, 0);
+      }
+    }
 
     const { data: newWorkout, error: workoutError } = await supabase
       .from('workouts')
@@ -155,7 +173,8 @@ serve(async (req) => {
         location: bestPlan.lugar.toLowerCase().includes('gimnasio') ? 'gimnasio' : 'casa',
         scheduled_date: workoutDate.toISOString().split('T')[0],
         completed: false,
-        duration_minutes: profile.session_duration_minutes || 60
+        duration_minutes: profile.session_duration_minutes || 60,
+        estimated_calories: Math.round(estimatedCalories)
       })
       .select()
       .single();

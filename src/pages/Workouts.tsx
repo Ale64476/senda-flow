@@ -45,13 +45,39 @@ const Workouts = () => {
   const fetchWorkouts = async () => {
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("workouts")
-      .select("*")
+      .select("*, workout_exercises(*)")
       .eq("user_id", user.id)
       .order("scheduled_date", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching workouts:", error);
+      return;
+    }
+
     setWorkouts(data || []);
+
+    // If no workouts, check if user has an assigned routine
+    if ((!data || data.length === 0)) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("assigned_routine_id")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.assigned_routine_id) {
+        const { data: assignedWorkout } = await supabase
+          .from("workouts")
+          .select("*, workout_exercises(*)")
+          .eq("id", profile.assigned_routine_id)
+          .single();
+
+        if (assignedWorkout) {
+          setWorkouts([assignedWorkout]);
+        }
+      }
+    }
   };
 
   const handleAddExercise = (exercise: ConfiguredExercise) => {
