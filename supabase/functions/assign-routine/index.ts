@@ -233,12 +233,21 @@ serve(async (req) => {
       // Get muscle group from first exercise
       const muscleGroup = dayExercises[0]?.exercises?.grupo_muscular || 'General';
 
+      // Normalizar el valor de location al enum correcto (casa, gimnasio, exterior)
+      const normalizeLocation = (lugar: string): 'casa' | 'gimnasio' | 'exterior' => {
+        const normalized = lugar?.toLowerCase() || 'casa';
+        if (normalized.includes('casa')) return 'casa';
+        if (normalized.includes('gimnasio') || normalized.includes('gym')) return 'gimnasio';
+        if (normalized.includes('exterior') || normalized.includes('parque')) return 'exterior';
+        return 'casa'; // default
+      };
+
       workoutsToCreate.push({
         user_id: user.id,
         name: `${selectedPlan.nombre_plan} - Día ${dayNum}`,
         description: `${muscleGroup} - ${selectedPlan.descripcion_plan}`,
         scheduled_date: dateStr,
-        location: selectedPlan.lugar || 'casa',
+        location: normalizeLocation(selectedPlan.lugar),
         duration_minutes: dayExercises.length * 5, // Estimate 5 min per exercise
         estimated_calories: Math.round(estimatedCalories),
         completed: false,

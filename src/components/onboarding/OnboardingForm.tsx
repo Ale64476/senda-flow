@@ -309,10 +309,8 @@ const OnboardingForm = () => {
         if (!session) throw new Error("No se encontró una sesión autenticada para asignar la rutina.");
 
         const { data: routineData, error: routineError } = await supabase.functions.invoke('assign-routine', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-          auth: {
+          headers: { 
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           }
         });
