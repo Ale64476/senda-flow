@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, CheckCircle2, Circle, Trash2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, CheckCircle2, Circle, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddExerciseDialog } from "@/components/AddExerciseDialog";
@@ -32,6 +33,7 @@ const Workouts = () => {
   const [open, setOpen] = useState(false);
   const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
   const [configuredExercises, setConfiguredExercises] = useState<ConfiguredExercise[]>([]);
+  const [otherDaysOpen, setOtherDaysOpen] = useState(false);
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -439,55 +441,71 @@ const Workouts = () => {
             </div>
 
             {otherDaysWorkouts.length > 0 && (
-              <Card className="p-4 bg-muted/30">
-                <h3 className="text-lg font-medium mb-3">Ver otros días...</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Entrenamientos guardados recientemente
-                </p>
-                <div className="space-y-3">
-                  {otherDaysWorkouts.slice(0, 5).map((workout) => (
-                    <Card
-                      key={workout.id}
-                      className={`p-4 ${
-                        workout.completed ? "bg-primary/5 border-primary/20" : ""
-                      }`}
+              <Collapsible open={otherDaysOpen} onOpenChange={setOtherDaysOpen}>
+                <Card className="p-4 bg-muted/30">
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between hover:bg-transparent p-0 h-auto mb-2"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <button onClick={() => toggleComplete(workout.id, workout.completed)}>
-                              {workout.completed ? (
-                                <CheckCircle2 className="w-5 h-5 text-primary" />
-                              ) : (
-                                <Circle className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </button>
-                            <div>
-                              <h4 className="font-medium text-sm">{workout.name}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(workout.scheduled_date), "d 'de' MMMM, yyyy")}
-                              </p>
+                      <div>
+                        <h3 className="text-lg font-medium">Ver otros días...</h3>
+                        <p className="text-sm text-muted-foreground text-left">
+                          {otherDaysWorkouts.length} entrenamientos guardados recientemente
+                        </p>
+                      </div>
+                      <ChevronDown
+                        className={`h-5 w-5 transition-transform duration-200 ${
+                          otherDaysOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-3 mt-4">
+                    {otherDaysWorkouts.slice(0, 5).map((workout) => (
+                      <Card
+                        key={workout.id}
+                        className={`p-4 ${
+                          workout.completed ? "bg-primary/5 border-primary/20" : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <button onClick={() => toggleComplete(workout.id, workout.completed)}>
+                                {workout.completed ? (
+                                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                                ) : (
+                                  <Circle className="w-5 h-5 text-muted-foreground" />
+                                )}
+                              </button>
+                              <div>
+                                <h4 className="font-medium text-sm">{workout.name}</h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(workout.scheduled_date), "d 'de' MMMM, yyyy")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-3 ml-7 text-xs text-muted-foreground">
+                              <span>{workout.duration_minutes} min</span>
+                              <span>~{workout.estimated_calories} kcal</span>
+                              <span className="capitalize">{workout.location}</span>
                             </div>
                           </div>
-                          <div className="flex gap-3 ml-7 text-xs text-muted-foreground">
-                            <span>{workout.duration_minutes} min</span>
-                            <span>~{workout.estimated_calories} kcal</span>
-                            <span className="capitalize">{workout.location}</span>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteWorkout(workout.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteWorkout(workout.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </Card>
+                      </Card>
+                    ))}
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
             )}
           </div>
         </div>
