@@ -278,17 +278,15 @@ const OnboardingForm = () => {
       // PASO 3: Crear el rol de usuario (si no existe)
       const { error: roleError } = await supabase
         .from("user_roles")
-        .upsert({
+        .insert({
           user_id: userId,
           role: 'user'
-        }, {
-          onConflict: 'user_id'
         });
 
       if (roleError) {
-        console.error("Error al crear rol de usuario:", roleError);
-        // No lanzar error si ya existe el rol
-        if (!roleError.message.includes("duplicate") && !roleError.code?.includes("23505")) {
+        // Ignorar error si el rol ya existe (código 23505 es violación de unique constraint)
+        if (roleError.code !== '23505') {
+          console.error("Error al crear rol de usuario:", roleError);
           throw roleError;
         }
       }
