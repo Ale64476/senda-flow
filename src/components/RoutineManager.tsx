@@ -70,25 +70,8 @@ export function RoutineManager() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-3xl font-bold">Gestor de Rutinas</h1>
-        <Button
-          onClick={handleAssignRoutine}
-          disabled={assignMutation.isPending}
-          variant="outline"
-        >
-          {assignMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Asignando...
-            </>
-          ) : (
-            <>
-              <Dumbbell className="mr-2 h-4 w-4" />
-              Asignar Nueva Rutina
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Stats Cards */}
