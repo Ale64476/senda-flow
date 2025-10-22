@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Calendar, Dumbbell, Utensils, User, Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -6,8 +6,14 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -38,7 +44,7 @@ export const Navbar = () => {
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
-              <Button variant="ghost" size="icon" onClick={signOut}>
+              <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="w-5 h-5" />
               </Button>
             </div>
